@@ -1,32 +1,32 @@
 import React, {useContext, useEffect, useMemo, useRef, useState} from "react";
 import PropTypes from "prop-types";
-import ThemeContext from "../../mfc-core-src/misc/context/ThemeContext";
+import {ThemeContext} from "mfc-core";
 import useDimensions from "./useDimensions";
 
-const drawGrid = ({ctx, iterations, labelPadding, data, axisKey, element, color, axisLabel, valueLabel}) => {
+const drawGrid = ({ctx, iterations, labelPadding, data, axisKey, element, color}) => {
     ctx.strokeStyle = '#e0e0e0'
 
     data.forEach((d, index) => {
         ctx.beginPath();
         let x
-        x = (index * ((element.width - labelPadding * 2) / (data.length - 1))) + labelPadding
+        x = (index * ((element.width - labelPadding * 2) / (data.length - 1))) + labelPadding * 1.5
         ctx.moveTo(x, labelPadding);
-        ctx.lineTo(x, element.height - labelPadding);
+        ctx.lineTo(x, element.height - labelPadding );
         ctx.stroke();
 
 
         ctx.fillStyle = color
-        ctx.fillText(d[axisKey], x - 6, element.height - 16);
+        ctx.fillText(d[axisKey], x - (d[axisKey].length * 8) / 2, element.height - 8);
     })
     iterations.forEach((i, index) => {
         ctx.beginPath();
-        const y = (index * (element.height * 1 / (iterations.length))) + labelPadding
-        ctx.moveTo(labelPadding, y);
-        ctx.lineTo(element.width - labelPadding / 2, y);
+        const y = (index * (element.height / iterations.length)) + labelPadding
+        ctx.moveTo(labelPadding , y);
+        ctx.lineTo(element.width - labelPadding/2, y);
         ctx.stroke();
 
         ctx.fillStyle = color
-        ctx.fillText(i.value, 0, y + 6);
+        ctx.fillText(i.value, 0, y + 4);
     })
 }
 
@@ -35,7 +35,10 @@ const randomColor = () => {
     return '#' + n.slice(0, 6);
 }
 
+const padding = 32
+
 export default function useChart(props) {
+
     const {biggest, iterations} = useMemo(() => {
         let biggest
         let iterations = []
@@ -67,7 +70,7 @@ export default function useChart(props) {
     }, [props.valueKey, props.data])
 
     const theme = useContext(ThemeContext)
-
+    const parentRef = useRef()
     const ref = useRef()
     const [points, setPoints] = useState([])
     const [context, setContext] = useState()
@@ -122,17 +125,15 @@ export default function useChart(props) {
             drawGrid({
                 ctx: context,
                 iterations: iterations,
-                labelPadding: 32,
+                labelPadding: padding,
                 data: props.data,
                 axisKey: props.axisKey,
                 element: ref.current,
-                color: theme.themes.mfc_color_primary,
-                axisLabel: props.axisLabel,
-                valueLabel: props.valueLabel
+                color: theme.themes.mfc_color_primary
             })
         }
     }
-    const {width, height} = useDimensions(ref.current)
+    const {width, height} = useDimensions(parentRef.current)
 
 
     useEffect(() => {
@@ -141,25 +142,18 @@ export default function useChart(props) {
     }, [width, height, props.data])
 
     return {
-        width, height,
-        context,
-        biggest,
-        total,
-        randomColor,
-        points,
-        setPoints,
-        ref,
-        theme,
-        labelSpacing: 35,
-        drawGrid: grid,
-        clearCanvas: () => context?.clearRect(0, 0, ref.current?.width, ref.current?.height)
+        parentRef, width, height,
+        context, biggest, total,
+        randomColor, points, setPoints,
+        ref, theme, labelSpacing: padding + 3,
+        drawGrid: grid, clearCanvas: () => context?.clearRect(0, 0, ref.current?.width, ref.current?.height)
     }
 }
 
 useChart.propTypes = {
+
     data: PropTypes.arrayOf(PropTypes.object).isRequired,
-    valueLabel: PropTypes.string.isRequired,
-    axisLabel: PropTypes.string.isRequired,
+
     valueKey: PropTypes.string.isRequired,
     axisKey: PropTypes.string.isRequired,
     onMouseMove: PropTypes.func.isRequired
