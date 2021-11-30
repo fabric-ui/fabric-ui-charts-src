@@ -3,32 +3,6 @@ import PropTypes from "prop-types";
 import {ThemeContext} from "mfc-core";
 import useDimensions from "./useDimensions";
 
-const drawGrid = ({ctx, iterations, labelPadding, data, axisKey, element, color}) => {
-    ctx.strokeStyle = '#e0e0e0'
-
-    data.forEach((d, index) => {
-        ctx.beginPath();
-        let x
-        x = (index * ((element.width - labelPadding * 2) / (data.length - 1))) + labelPadding * 1.5
-        ctx.moveTo(x, labelPadding);
-        ctx.lineTo(x, element.height - labelPadding );
-        ctx.stroke();
-
-
-        ctx.fillStyle = color
-        ctx.fillText(d[axisKey], x - (d[axisKey].length * 8) / 2, element.height - 8);
-    })
-    iterations.forEach((i, index) => {
-        ctx.beginPath();
-        const y = (index * (element.height / iterations.length)) + labelPadding
-        ctx.moveTo(labelPadding , y);
-        ctx.lineTo(element.width - labelPadding/2, y);
-        ctx.stroke();
-
-        ctx.fillStyle = color
-        ctx.fillText(i.value, 0, y + 4);
-    })
-}
 
 const randomColor = () => {
     let n = (Math.random() * 0xfffff * 1000000).toString(16);
@@ -108,6 +82,49 @@ export default function useChart(props) {
             this.closePath();
             return this;
         }
+        CanvasRenderingContext2D.prototype.animatedRect = function ({
+                                                                        placement: {x, y},
+                                                                        dimensions: {
+                                                                            initialWidth,
+                                                                            initialHeight,
+                                                                            finalWidth,
+                                                                            finalHeight
+                                                                        },
+                                                                        animationTimestamp
+                                                                    }) {
+            let currentDimensions = {width: initialWidth, height: initialHeight}
+            const heightAdjustment = (finalHeight * 100/animationTimestamp)
+            const widthAdjustment = finalWidth/animationTimestamp
+            let start, previousTimeStamp
+
+
+            const step = (timestamp) => {
+
+                if (start === undefined)
+                    start = timestamp;
+                const elapsed = timestamp - start;
+
+                if (previousTimeStamp !== timestamp) {
+                    this.clearRect(x, y, finalWidth, finalHeight)
+                    this.fillRect(x, y, currentDimensions.width, currentDimensions.height)
+                    this.fill()
+
+                    currentDimensions = {
+                        width: initialWidth !== finalWidth ? currentDimensions.width + widthAdjustment : currentDimensions.width,
+                        height: initialHeight !== finalHeight ?  currentDimensions.height +heightAdjustment: currentDimensions.height
+                    }
+                    // console.log(currentDimensions)
+                }
+                if (elapsed < animationTimestamp) { // Stop the animation after 2 seconds
+                    previousTimeStamp = timestamp
+                    requestAnimationFrame(step);
+                }
+            }
+
+            requestAnimationFrame(step)
+
+
+        }
     }, [])
 
 
@@ -119,20 +136,6 @@ export default function useChart(props) {
         }
     }, [props.data, context, points])
 
-
-    const grid = () => {
-        if (context) {
-            drawGrid({
-                ctx: context,
-                iterations: iterations,
-                labelPadding: padding,
-                data: props.data,
-                axisKey: props.axisKey,
-                element: ref.current,
-                color: theme.themes.mfc_color_primary
-            })
-        }
-    }
     const {width, height} = useDimensions(parentRef.current)
 
 
@@ -142,11 +145,12 @@ export default function useChart(props) {
     }, [width, height, props.data])
 
     return {
+        iterations,
         parentRef, width, height,
         context, biggest, total,
         randomColor, points, setPoints,
         ref, theme, labelSpacing: padding + 3,
-        drawGrid: grid, clearCanvas: () => context?.clearRect(0, 0, ref.current?.width, ref.current?.height)
+        clearCanvas: () => context?.clearRect(0, 0, ref.current?.width, ref.current?.height)
     }
 }
 

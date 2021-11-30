@@ -2,6 +2,8 @@ import useChart from "../../hooks/useChart";
 import React, {useEffect} from "react";
 import PropTypes from "prop-types";
 import onMouseMove from "./onMouseMove";
+import drawGrid from "./drawGrid";
+import chartPropsTemplate from "../../templates/chartPropsTemplate";
 
 
 export default function useLineChart(props) {
@@ -10,7 +12,7 @@ export default function useLineChart(props) {
     const drawLine = ({axis, value, position, context}) => {
         const pVariation = (value * 100) / biggest
         const height = ((pVariation * (ref.current.height - labelSpacing * 2 - 4)) / 100)
-        let x = (position * ((ref.current.width - labelSpacing * 2 + 8) / (props.data.length - 1))) + labelSpacing * 1.5 - 4,
+        let x = (position * ((ref.current.width - labelSpacing * 2) / (props.data.length - 1))) + labelSpacing * 1.5,
             y = (ref.current.height - labelSpacing) - height - 8
 
         if (points.length === 0)
@@ -41,7 +43,15 @@ export default function useLineChart(props) {
     const drawChart = (ctx, clear) => {
         if (clear)
             clearCanvas()
-        drawGrid()
+        drawGrid({
+            ctx: context,
+            iterations: iterations,
+            labelPadding: labelSpacing,
+            data: props.data,
+            element: ref.current,
+            color: props.color,
+            axisKey: props.axis.field
+        })
         props.data.forEach((el, index) => {
             drawLine({
                 axis: el[props.axis.field],
@@ -54,8 +64,8 @@ export default function useLineChart(props) {
 
     const {
         points, setPoints, parentRef,
-        theme, biggest, ref,
-        labelSpacing, context, drawGrid,
+        theme, biggest, ref, iterations,
+        labelSpacing, context,
         clearCanvas, width, height
     } = useChart({
         axisKey: props.axis.field,
@@ -83,25 +93,4 @@ export default function useLineChart(props) {
 }
 
 
-useLineChart.propTypes = {
-    parentRef: PropTypes.element,
-    value: PropTypes.shape({
-        label: PropTypes.string,
-        field: PropTypes.string
-    }),
-    axis: PropTypes.shape({
-        label: PropTypes.string,
-        field: PropTypes.string
-    }),
-
-    data: PropTypes.arrayOf(PropTypes.object),
-    width: PropTypes.number,
-    height: PropTypes.number,
-    title: PropTypes.string,
-    legends: PropTypes.arrayOf(PropTypes.shape({
-        label: PropTypes.string,
-        field: PropTypes.string
-    })),
-
-    color: PropTypes.string
-}
+useLineChart.propTypes = chartPropsTemplate

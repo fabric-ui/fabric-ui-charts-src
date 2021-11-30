@@ -6,14 +6,15 @@ export default function onMouseMove (props) {
         if (props.event.x  >= p.x && props.event.x  <= p.x2 && props.event.y <= p.y  && props.event.y >= p.y2) {
             drawn = true
 
-            props.drawChart()
-            props.ctx.fillStyle = '#333333'
-            const x = (props.event.width - props.event.x) <= 100 ? props.event.x - 100 : props.event.x
-            props.ctx.roundRect(x, props.event.y, 100, 50, 5).fill()
+            props.drawChart(i)
+            props.ctx.fillStyle = 'rgba(0, 0, 0, 0.85)'
+            const x = (props.event.width - props.event.x) <= 100 ? p.x + p.barWidth/2 - 100 :p.x + p.barWidth/2
+            const y = p.yPoint - 25
+            props.ctx.roundRect(x, y, 100, 50, 5).fill()
 
             props.ctx.fillStyle = 'white'
-            props.ctx.fillText(`Axis: ${p.axis}`, x + 6, props.event.y+ 20)
-            props.ctx.fillText(`Value: ${p.value}`, x + 6, props.event.y+ 40)
+            props.ctx.fillText(`Axis: ${p.axis}`, x + 6, y+ 20)
+            props.ctx.fillText(`Value: ${p.value}`, x + 6, y+ 40)
         } else if (drawn === undefined)
             drawn = false
     })

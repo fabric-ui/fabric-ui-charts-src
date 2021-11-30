@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import shared from "./styles/Charts.module.css";
 import useLineChart from "./variants/line/useLineChart";
 import useVerticalChart from "./variants/vertical/useVerticalChart";
+import chartPropsTemplate from "./templates/chartPropsTemplate";
 
 
 export default function VerticalBarChart(props) {
@@ -17,21 +18,4 @@ export default function VerticalBarChart(props) {
         </div>
     )
 }
-VerticalBarChart.propTypes = {
-    className: PropTypes.string,
-    styles: PropTypes.object,
-
-    value: PropTypes.shape({
-        label: PropTypes.string,
-        field: PropTypes.string.isRequired
-    }).isRequired,
-    axis: PropTypes.shape({
-        label: PropTypes.string,
-        field: PropTypes.string.isRequired
-    }).isRequired,
-
-    data: PropTypes.arrayOf(PropTypes.object).isRequired,
-    title: PropTypes.string,
-    color: PropTypes.string,
-    type: PropTypes.oneOf(['line-chart'])
-}
+VerticalBarChart.propTypes = chartPropsTemplate

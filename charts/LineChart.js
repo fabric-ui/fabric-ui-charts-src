@@ -2,6 +2,7 @@ import React, {useEffect} from "react";
 import PropTypes from 'prop-types'
 import shared from "./styles/Charts.module.css";
 import useLineChart from "./variants/line/useLineChart";
+import chartPropsTemplate from "./templates/chartPropsTemplate";
 
 
 export default function LineChart(props) {
@@ -25,21 +26,4 @@ export default function LineChart(props) {
         </div>
     )
 }
-LineChart.propTypes = {
-    className: PropTypes.string,
-    styles: PropTypes.object,
-
-    value: PropTypes.shape({
-        label: PropTypes.string,
-        field: PropTypes.string.isRequired
-    }).isRequired,
-    axis: PropTypes.shape({
-        label: PropTypes.string,
-        field: PropTypes.string.isRequired
-    }).isRequired,
-
-    data: PropTypes.arrayOf(PropTypes.object).isRequired,
-    title: PropTypes.string,
-    color: PropTypes.string,
-    type: PropTypes.oneOf(['line-chart'])
-}
+LineChart.propTypes = chartPropsTemplate
