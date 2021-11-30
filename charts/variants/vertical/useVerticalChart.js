@@ -6,10 +6,11 @@ import drawGrid from "./drawGrid";
 import chartPropsTemplate from "../../templates/chartPropsTemplate";
 import hexToRgba from "../../utils/hexToRgba";
 import useAsyncMemo from "../../utils/useAsyncMemo";
+import animatedRects from "../../utils/animatedRects";
 
 
 export default function useVerticalChart(props) {
-    let xBefore, yBefore
+
     const {
         points, setPoints, parentRef,
         theme, biggest, ref, iterations,
@@ -19,27 +20,38 @@ export default function useVerticalChart(props) {
         axisKey: props.axis.field,
         data: props.data,
         valueKey: props.value.field,
-        onMouseMove: event => onMouseMove({
+
+    })
+
+    const handleMouseMove = (event) => {
+        const bBox = ref.current?.getBoundingClientRect()
+        onMouseMove({
             ctx: context,
-            event: event,
+            event: {
+                x: event.clientX - bBox.left,
+                y: event.clientY - bBox.top,
+                width: bBox.width,
+                height: bBox.height
+            },
             points: points,
             drawChart: (onHover) => drawChart(context, true, onHover),
         })
-    })
+    }
 
     const dimensions = useAsyncMemo(() => {
         const length = props.data.length
-        const o = ref.current ? (ref.current.width - labelSpacing * 2) * .1 / length : 0
-        const w = ref.current ? ((ref.current.width - labelSpacing * 1.75) / length) - o : 0
+        const o = ref.current ? (ref.current.width - labelSpacing * 2) * .1 / length : undefined
+        const w = ref.current ? ((ref.current.width - labelSpacing * 1.75) / length) - o : undefined
 
         return {offset: o, barWidth: w}
     }, [width, labelSpacing, ref.current])
 
     let [firstRender, setFirstRender] = useState(true)
-
-    const drawChart = (ctx, clear, onHover) => {
+    let calledFirstRender = false
+    const drawChart = (clear, onHover) => {
         if (clear)
             clearCanvas()
+
         drawGrid({
             ctx: context,
             iterations: iterations,
@@ -51,56 +63,77 @@ export default function useVerticalChart(props) {
             width: dimensions.barWidth,
             offset: dimensions.offset
         })
-        props.data.forEach((el, index) => {
-            drawBar({
-                axis: el[props.axis.field],
-                value: el[props.value.field],
-                context: ctx,
-                position: index,
-                onHover: onHover === index
-            })
-        })
 
+        const color = props.color ? props.color : '#0095ff'
+        context.fillStyle = hexToRgba(color, .65)
+
+        if (points.length === 0)
+            props.data.forEach((el, index) => {
+                getPoints({
+                    axis: el[props.axis.field],
+                    value: el[props.value.field],
+                    context: context,
+                    position: index
+                })
+            })
+        else if (firstRender && !calledFirstRender) {
+            calledFirstRender = true
+            animatedRects(
+                points.map(p => {
+                    return {...p, width: p.barWidth}
+                }),
+                () => {
+                    clearCanvas()
+                    drawGrid({
+                            ctx: context,
+                            iterations: iterations,
+                            labelPadding: labelSpacing,
+                            data: props.data,
+                            element: ref.current,
+                            color: theme.themes.mfc_color_quaternary,
+                            axisKey: props.axis.field,
+                            width: dimensions.barWidth,
+                            offset: dimensions.offset
+                        }
+                    )
+                },
+                dimensions.barWidth,
+                0,
+                500,
+
+                context,
+                () => setFirstRender(false),
+                () => {
+                    context.fillStyle = hexToRgba(props.color ? props.color : '#0095ff', .65)
+                }
+            )
+        } else
+            points.forEach((p, i) => {
+                if (onHover === i)
+                    context.fillStyle = onHover ? hexToRgba(color, .9) : hexToRgba(color, .65)
+
+                context.fillRect(p.x, p.y, p.barWidth, p.height)
+            })
     }
 
-    const drawBar = ({axis, value, position, context, onHover}) => {
+    const getPoints = ({axis, value, position}) => {
         const pVariation = (value * 100) / biggest
         const x = (position) * Math.abs(dimensions.barWidth) + labelSpacing * 1.25 + dimensions.offset * (position + 1)
         const y = ref.current.height - labelSpacing * 1.35
         const height = (pVariation * (ref.current.height - labelSpacing * 2.35)) / 100
-        console.log(firstRender)
-        if (points.length === 0)
-            setPoints(prevState => {
-                return [...prevState, {
-                    x: x,
-                    y: y,
-                    x2: x + dimensions.barWidth,
-                    y2: labelSpacing,
-                    yPoint: y - height,
-                    axis: axis,
-                    value: value,
-                    barWidth: dimensions.barWidth
-                }]
-            })
-        const color = props.color ? props.color : '#0095ff'
-        context.fillStyle = onHover ? hexToRgba(color, .9) : hexToRgba(color, .65)
-        // if (firstRender)
-        //     context.animatedRect({
-        //         placement: {x: x, y: y},
-        //         dimensions: {
-        //             initialHeight: 0,
-        //             initialWidth: dimensions.barWidth,
-        //             finalWidth: dimensions.barWidth,
-        //             finalHeight: -height
-        //         },
-        //         animationTimestamp: 5000
-        //     });
-        // else
-            context.fillRect(x, y,dimensions.barWidth, -height )
-        context.fill();
-
-        xBefore = x
-        yBefore = y
+        setPoints(prevState => {
+            return [...prevState, {
+                x: x,
+                y: y,
+                x2: x + dimensions.barWidth,
+                y2: labelSpacing,
+                yPoint: y - height,
+                axis: axis,
+                value: value,
+                height: -height,
+                barWidth: dimensions.barWidth
+            }]
+        })
     }
 
     useEffect(() => {
@@ -108,10 +141,17 @@ export default function useVerticalChart(props) {
 
             context.fillStyle = theme.themes.mfc_color_primary
             context.font = "600 14px Roboto";
-            drawChart(context, true)
-            setFirstRender(false)
+            if (dimensions.barWidth !== undefined)
+                drawChart(true)
+
+
         }
-    }, [props.data, context, width, height, theme, firstRender])
+        ref.current?.addEventListener('mousemove', handleMouseMove)
+        return () => {
+            ref.current?.removeEventListener('mousemove', handleMouseMove)
+        }
+
+    }, [props.data, context, width, height, theme, firstRender, dimensions, points])
 
 
     return {ref, width, height, parentRef}

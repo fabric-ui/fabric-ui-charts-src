@@ -3,6 +3,52 @@ import PropTypes from "prop-types";
 import {ThemeContext} from "mfc-core";
 import useDimensions from "./useDimensions";
 
+function animatedRect(
+    {
+        placement: {x, y},
+        dimensions: {
+            initialWidth,
+            initialHeight,
+            finalWidth,
+            finalHeight
+        },
+        animationTimestamp,
+        clear
+    }
+) {
+    let currentDimensions = {width: initialWidth, height: initialHeight}
+    const heightAdjustment = (finalHeight * 100 / animationTimestamp)
+    const widthAdjustment = finalWidth / animationTimestamp
+    let start, previousTimeStamp
+
+
+    const step = (timestamp) => {
+
+        if (start === undefined)
+            start = timestamp;
+        const elapsed = timestamp - start;
+
+        if (previousTimeStamp !== timestamp) {
+            clear()
+            this.fillRect(x, y, currentDimensions.width, currentDimensions.height)
+            this.fill()
+
+            currentDimensions = {
+                width: initialWidth !== finalWidth ? currentDimensions.width + widthAdjustment : currentDimensions.width,
+                height: initialHeight !== finalHeight ? currentDimensions.height + heightAdjustment : currentDimensions.height
+            }
+            // console.log(currentDimensions)
+        }
+        if (elapsed < animationTimestamp) { // Stop the animation after 2 seconds
+            previousTimeStamp = timestamp
+            requestAnimationFrame(step);
+        }
+    }
+
+    requestAnimationFrame(step)
+
+
+}
 
 const randomColor = () => {
     let n = (Math.random() * 0xfffff * 1000000).toString(16);
@@ -55,15 +101,6 @@ export default function useChart(props) {
         }, 0)
     }, [props.data])
 
-    const handleMouseMove = (event) => {
-        const bBox = ref.current?.getBoundingClientRect()
-        props.onMouseMove({
-            x: event.clientX - bBox.left,
-            y: event.clientY - bBox.top,
-            width: bBox.width,
-            height: bBox.height
-        })
-    }
 
     useEffect(() => {
         const ctx = ref.current?.getContext('2d')
@@ -82,59 +119,10 @@ export default function useChart(props) {
             this.closePath();
             return this;
         }
-        CanvasRenderingContext2D.prototype.animatedRect = function ({
-                                                                        placement: {x, y},
-                                                                        dimensions: {
-                                                                            initialWidth,
-                                                                            initialHeight,
-                                                                            finalWidth,
-                                                                            finalHeight
-                                                                        },
-                                                                        animationTimestamp
-                                                                    }) {
-            let currentDimensions = {width: initialWidth, height: initialHeight}
-            const heightAdjustment = (finalHeight * 100/animationTimestamp)
-            const widthAdjustment = finalWidth/animationTimestamp
-            let start, previousTimeStamp
 
-
-            const step = (timestamp) => {
-
-                if (start === undefined)
-                    start = timestamp;
-                const elapsed = timestamp - start;
-
-                if (previousTimeStamp !== timestamp) {
-                    this.clearRect(x, y, finalWidth, finalHeight)
-                    this.fillRect(x, y, currentDimensions.width, currentDimensions.height)
-                    this.fill()
-
-                    currentDimensions = {
-                        width: initialWidth !== finalWidth ? currentDimensions.width + widthAdjustment : currentDimensions.width,
-                        height: initialHeight !== finalHeight ?  currentDimensions.height +heightAdjustment: currentDimensions.height
-                    }
-                    // console.log(currentDimensions)
-                }
-                if (elapsed < animationTimestamp) { // Stop the animation after 2 seconds
-                    previousTimeStamp = timestamp
-                    requestAnimationFrame(step);
-                }
-            }
-
-            requestAnimationFrame(step)
-
-
-        }
     }, [])
 
 
-    useEffect(() => {
-
-        ref.current?.addEventListener('mousemove', handleMouseMove)
-        return () => {
-            ref.current?.removeEventListener('mousemove', handleMouseMove)
-        }
-    }, [props.data, context, points])
 
     const {width, height} = useDimensions(parentRef.current)
 

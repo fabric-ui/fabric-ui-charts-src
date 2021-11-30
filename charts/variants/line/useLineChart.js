@@ -49,7 +49,7 @@ export default function useLineChart(props) {
             labelPadding: labelSpacing,
             data: props.data,
             element: ref.current,
-            color: props.color,
+            color: theme.themes.mfc_color_quaternary,
             axisKey: props.axis.field
         })
         props.data.forEach((el, index) => {
@@ -70,23 +70,36 @@ export default function useLineChart(props) {
     } = useChart({
         axisKey: props.axis.field,
         data: props.data,
-        valueKey: props.value.field,
-        onMouseMove: event => onMouseMove({
+        valueKey: props.value.field
+    })
+
+    const handleMouseMove = (event) => {
+        const bBox = ref.current?.getBoundingClientRect()
+        onMouseMove({
             ctx: context,
-            event: event,
+            event: {
+                x: event.clientX - bBox.left,
+                y: event.clientY - bBox.top,
+                width: bBox.width,
+                height: bBox.height
+            },
             points: points,
             drawChart: () => drawChart(context, true),
         })
-    })
+    }
 
     useEffect(() => {
         if (context) {
-            context.setLineDash([3, 3])
+
             context.fillStyle = theme.themes.mfc_color_primary
             context.font = "600 14px Roboto";
             drawChart(context, true)
         }
-    }, [props.data, context, width, height, theme])
+        ref.current?.addEventListener('mousemove', handleMouseMove)
+        return () => {
+            ref.current?.removeEventListener('mousemove', handleMouseMove)
+        }
+    }, [props.data, context, width, height, theme, points])
 
 
     return {ref, width, height, parentRef}
