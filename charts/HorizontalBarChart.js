@@ -1,7 +1,7 @@
 import React, {useEffect} from "react";
 import PropTypes from 'prop-types'
 import shared from "./styles/Charts.module.css";
-import useLineChart from "./hooks/useLineChart";
+import useLineChart from "./variants/line/useLineChart";
 
 
 export default function Chart(props) {

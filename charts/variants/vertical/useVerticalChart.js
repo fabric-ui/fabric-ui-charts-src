@@ -1,39 +1,41 @@
-import useChart from "./useChart";
+import useChart from "../../hooks/useChart";
 import React, {useEffect} from "react";
 import PropTypes from "prop-types";
-import onMouseMove from "../variants/line/onMouseMove";
+import onMouseMove from "./onMouseMove";
 
 
-export default function useLineChart(props) {
+export default function useVerticalChart(props) {
     let xBefore, yBefore
 
-    const drawLine = ({axis, value, position, context}) => {
+    const drawBar = ({axis, value, position, context}) => {
         const pVariation = (value * 100) / biggest
-        const height = ((pVariation * (ref.current.height - labelSpacing * 2 - 4)) / 100)
-        let x = (position * ((ref.current.width - labelSpacing * 2 + 8) / (props.data.length - 1))) + labelSpacing * 1.5 - 4,
-            y = (ref.current.height - labelSpacing) - height - 8
+
+        const length = props.data.length
+        const offset = (ref.current.width - labelSpacing * 2)*.1/length
+        const width = ((ref.current.width - labelSpacing * 1.75) / length) - offset
+        const x = (position) * Math.abs(width) + labelSpacing * 1.25 + offset * (position + 1)
+        const y = ref.current.height - labelSpacing * 1.35
+        const height = (pVariation * (ref.current.height - labelSpacing * 2.35)) / 100
 
         if (points.length === 0)
             setPoints(prevState => {
-                return [...prevState, {x: x, y: y, axis: axis, value: value}]
+                return [...prevState, {
+                    x: x,
+                    y: y,
+                    x2: x + width,
+                    y2: y - height,
+                    axis: axis,
+                    value: value
+                }]
             })
 
-        context.strokeStyle = props.color ? props.color : '#0095ff'
+
         context.fillStyle = props.color ? props.color : '#0095ff'
-
-        context.beginPath();
-        context.arc(x, y, 4, 0, 2 * Math.PI);
+        // const h = ref.current.height - labelSpacing * 1.25
+        // const w = ref.current.width - labelSpacing * 2
+        context.fillRect(x, y, width, -height);
         context.fill();
-        context.stroke();
 
-        if (position > 0) {
-            context.beginPath();
-            context.moveTo(xBefore, yBefore);
-
-
-            context.lineTo(x, y);
-            context.stroke();
-        }
 
         xBefore = x
         yBefore = y
@@ -44,7 +46,7 @@ export default function useLineChart(props) {
             clearCanvas()
         drawGrid()
         props.data.forEach((el, index) => {
-            drawLine({
+            drawBar({
                 axis: el[props.axis.field],
                 value: el[props.value.field],
                 context: ctx,
@@ -84,7 +86,7 @@ export default function useLineChart(props) {
 }
 
 
-useLineChart.propTypes = {
+useVerticalChart.propTypes = {
     parentRef: PropTypes.element,
     value: PropTypes.shape({
         label: PropTypes.string,
