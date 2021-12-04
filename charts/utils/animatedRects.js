@@ -1,4 +1,4 @@
-export default function animatedRects(points, clear, initialWidth, initialHeight, timestamp, context, setFirstRender, onBeforeDraw) {
+export default function animatedRects(points, clear, initialWidth, initialHeight, timestamp, setFirstRender, onBeforeDraw) {
     let start, previousTimeStamp
     let newPoints = [...points].map(p => {
         return {
@@ -7,12 +7,13 @@ export default function animatedRects(points, clear, initialWidth, initialHeight
         }
     })
 
+
     const draw = (elapsed) => {
         clear()
         points.forEach((p, i) => {
             onBeforeDraw()
-            context.fillRect(newPoints[i].x, newPoints[i].y, newPoints[i].currentDimensions.width, newPoints[i].currentDimensions.height)
-            context.fill()
+            this.fillRect(newPoints[i].x, newPoints[i].y, newPoints[i].currentDimensions.width, newPoints[i].currentDimensions.height)
+            this.fill()
 
             const countW = Math.min(newPoints[i].widthAdjustment * elapsed, Math.abs(newPoints[i].width)) * (newPoints[i].width < 0 ? -1 : 1)
             const countH = Math.min(newPoints[i].heightAdjustment * elapsed, Math.abs(newPoints[i].height)) * (newPoints[i].height < 0 ? -1 : 1)
@@ -23,8 +24,8 @@ export default function animatedRects(points, clear, initialWidth, initialHeight
             }
         })
     }
+
     const step = (t) => {
-        // console.log(Math.round(t))
         if (start === undefined)
             start = t;
         const elapsed = t - start;
@@ -45,6 +46,7 @@ export default function animatedRects(points, clear, initialWidth, initialHeight
 }
 
 function getValues(point, initialWidth, initialHeight, timestamp) {
+
     let currentDimensions = {width: initialWidth, height: initialHeight}
     const heightAdjustment = Math.abs(point.height / timestamp)
 

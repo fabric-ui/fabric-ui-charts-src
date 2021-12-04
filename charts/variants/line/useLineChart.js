@@ -49,7 +49,7 @@ export default function useLineChart(props) {
             labelPadding: labelSpacing,
             data: props.data,
             element: ref.current,
-            color: theme.themes.mfc_color_quaternary,
+            color: theme.themes.fabric_color_quaternary,
             axisKey: props.axis.field
         })
         props.data.forEach((el, index) => {
@@ -91,7 +91,7 @@ export default function useLineChart(props) {
     useEffect(() => {
         if (context) {
 
-            context.fillStyle = theme.themes.mfc_color_primary
+            context.fillStyle = theme.themes.fabric_color_primary
             context.font = "600 14px Roboto";
             drawChart(context, true)
         }

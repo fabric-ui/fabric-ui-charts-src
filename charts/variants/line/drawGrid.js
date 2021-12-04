@@ -21,6 +21,6 @@ export default function drawGrid ({ctx, iterations, labelPadding, data, axisKey,
         ctx.stroke();
 
         ctx.fillStyle = color
-        ctx.fillText(i.value, 0, y + 4);
+        ctx.fillText(i, 0, y + 4);
     })
 }

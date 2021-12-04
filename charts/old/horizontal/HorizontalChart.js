@@ -31,7 +31,7 @@ export default function HorizontalChart(props) {
             return [...prevState, {x: x, y: y, value: value}]
         })
 
-        context.fillStyle = theme.themes.mfc_color_primary
+        context.fillStyle = theme.themes.fabric_color_primary
         context.fillText(axis, 0, y + 7 + height / 2);
     }
 

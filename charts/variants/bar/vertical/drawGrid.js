@@ -2,7 +2,7 @@ export default function drawGrid({ctx, iterations, labelPadding, data, axisKey, 
     ctx.strokeStyle = '#e0e0e0'
 
     ctx.beginPath();
-    ctx.moveTo(labelPadding * 1.35, labelPadding);
+    ctx.moveTo(labelPadding * 1.35, 0);
     ctx.lineTo(labelPadding * 1.35, element.height - labelPadding);
     ctx.stroke();
 
@@ -10,8 +10,8 @@ export default function drawGrid({ctx, iterations, labelPadding, data, axisKey, 
         ctx.beginPath();
         let x = (index * Math.abs(width) + labelPadding * 1.25 + offset * (index + 1)) + width / 2
 
-        ctx.moveTo(x + width / 2 + offset/2, labelPadding );
-        ctx.lineTo(x + width / 2 + offset/2, element.height - labelPadding);
+        ctx.moveTo(x + width / 2 + offset / 2, 0);
+        ctx.lineTo(x + width / 2 + offset / 2, element.height - labelPadding);
         ctx.stroke();
 
         ctx.fillStyle = color
@@ -20,12 +20,13 @@ export default function drawGrid({ctx, iterations, labelPadding, data, axisKey, 
 
     iterations.forEach((i, index) => {
         ctx.beginPath();
-        const y = (index * (element.height / iterations.length)) + labelPadding - 2
+        const y = (index * ((element.height - labelPadding) / (iterations.length - 1)))
         ctx.moveTo(labelPadding, y);
-        ctx.lineTo(element.width - labelPadding*.35, y);
+        ctx.lineTo(element.width , y);
         ctx.stroke();
 
         ctx.fillStyle = color
-        ctx.fillText(i.value, 0, y + 4);
+
+        ctx.fillText(i, 0, index === 0 ? 10 : (y + 4));
     })
 }

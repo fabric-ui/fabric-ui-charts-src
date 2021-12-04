@@ -6,8 +6,12 @@ export default function useDimensions(parent) {
     let resizeObs
 
     const callback = () => {
-        setWidth(parent.offsetWidth - (parent.firstChild.offsetLeft - parent.offsetLeft))
-        setHeight(parent.offsetHeight - parent.firstChild.offsetHeight )
+        setWidth(parent.offsetWidth - (parent.firstChild.offsetLeft - parent.offsetLeft) *2)
+        const marginBottom = window.getComputedStyle(parent.firstChild, null).getPropertyValue('margin-bottom').replace('px', '')
+        setHeight(parent.offsetHeight - parent.firstChild.offsetHeight - parseInt(marginBottom))
+
+
+        console.log()
     }
 
     useEffect(() => {

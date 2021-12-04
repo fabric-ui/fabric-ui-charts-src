@@ -1,16 +1,15 @@
-import useChart from "../../hooks/useChart";
+import useChart from "../../../hooks/useChart";
 import React, {useState, useEffect} from "react";
 
-import onMouseMove from "./onMouseMove";
+import onMouseMove from "../onMouseMove";
 import drawGrid from "./drawGrid";
-import chartPropsTemplate from "../../templates/chartPropsTemplate";
-import hexToRgba from "../../utils/hexToRgba";
-import useAsyncMemo from "../../utils/useAsyncMemo";
-import animatedRects from "../../utils/animatedRects";
+import chartPropsTemplate from "../../../templates/chartPropsTemplate";
+import hexToRgba from "../../../utils/hexToRgba";
+import useAsyncMemo from "../../../utils/useAsyncMemo";
+import animatedRects from "../../../utils/animatedRects";
 
 
-export default function useVerticalChart(props) {
-
+export default function useHorizontalChart(props) {
     const {
         points, setPoints, parentRef,
         theme, biggest, ref, iterations,
@@ -20,7 +19,6 @@ export default function useVerticalChart(props) {
         axisKey: props.axis.field,
         data: props.data,
         valueKey: props.value.field,
-
     })
 
     const handleMouseMove = (event) => {
@@ -34,20 +32,32 @@ export default function useVerticalChart(props) {
                 height: bBox.height
             },
             points: points,
-            drawChart: (onHover) => drawChart(context, true, onHover),
+            drawChart: (onHover) =>
+                drawChart(true, onHover),
         })
     }
 
     const dimensions = useAsyncMemo(() => {
         const length = props.data.length
-        const o = ref.current ? (ref.current.width - labelSpacing * 2) * .1 / length : undefined
-        const w = ref.current ? ((ref.current.width - labelSpacing * 1.75) / length) - o : undefined
-
-        return {offset: o, barWidth: w}
-    }, [width, labelSpacing, ref.current])
+        const o = ref.current ? (ref.current.height * 2 )/(length*length): undefined
+        const h = ref.current ? ((ref.current.height - labelSpacing ) / length) - o : undefined
+        props.data.forEach((el, index) => {
+            getPoints({
+                axis: el[props.axis.field],
+                value: el[props.value.field],
+                context: context,
+                position: index,
+                barHeight: h,
+                offset: o
+            })
+        })
+        return {offset: o, barHeight: h}
+    }, [height, labelSpacing, ref.current])
 
     let [firstRender, setFirstRender] = useState(true)
     let calledFirstRender = false
+
+
     const drawChart = (clear, onHover) => {
         if (clear)
             clearCanvas()
@@ -58,30 +68,21 @@ export default function useVerticalChart(props) {
             labelPadding: labelSpacing,
             data: props.data,
             element: ref.current,
-            color: theme.themes.mfc_color_quaternary,
+            color: theme.themes.fabric_color_quaternary,
             axisKey: props.axis.field,
-            width: dimensions.barWidth,
+            height: dimensions.barHeight,
             offset: dimensions.offset
         })
 
         const color = props.color ? props.color : '#0095ff'
         context.fillStyle = hexToRgba(color, .65)
 
-        if (points.length === 0)
-            props.data.forEach((el, index) => {
-                getPoints({
-                    axis: el[props.axis.field],
-                    value: el[props.value.field],
-                    context: context,
-                    position: index
-                })
-            })
-        else if (firstRender && !calledFirstRender) {
+        // if (points.length === 0)
+
+        if (firstRender && !calledFirstRender && points.length > 0) {
             calledFirstRender = true
-            animatedRects(
-                points.map(p => {
-                    return {...p, width: p.barWidth}
-                }),
+            context.animatedRect(
+                points,
                 () => {
                     clearCanvas()
                     drawGrid({
@@ -90,18 +91,16 @@ export default function useVerticalChart(props) {
                             labelPadding: labelSpacing,
                             data: props.data,
                             element: ref.current,
-                            color: theme.themes.mfc_color_quaternary,
+                            color: theme.themes.fabric_color_quaternary,
                             axisKey: props.axis.field,
-                            width: dimensions.barWidth,
+                            height: dimensions.barHeight,
                             offset: dimensions.offset
                         }
                     )
                 },
-                dimensions.barWidth,
                 0,
+                dimensions.barHeight,
                 500,
-
-                context,
                 () => setFirstRender(false),
                 () => {
                     context.fillStyle = hexToRgba(props.color ? props.color : '#0095ff', .65)
@@ -109,42 +108,37 @@ export default function useVerticalChart(props) {
             )
         } else
             points.forEach((p, i) => {
-                if (onHover === i)
-                    context.fillStyle = onHover ? hexToRgba(color, .9) : hexToRgba(color, .65)
-
-                context.fillRect(p.x, p.y, p.barWidth, p.height)
+                console.log(onHover)
+                context.fillStyle = onHover === i ? hexToRgba(color, .9) : hexToRgba(color, .65)
+                context.fillRect(p.x, p.y, p.width, p.height)
             })
     }
 
-    const getPoints = ({axis, value, position}) => {
+    const getPoints = ({axis, value, position, barHeight, offset}) => {
         const pVariation = (value * 100) / biggest
-        const x = (position) * Math.abs(dimensions.barWidth) + labelSpacing * 1.25 + dimensions.offset * (position + 1)
-        const y = ref.current.height - labelSpacing * 1.35
-        const height = (pVariation * (ref.current.height - labelSpacing * 2.35)) / 100
+        const y = (position) * (Math.abs(barHeight) + offset)
+        const width = (pVariation * (ref.current.width - labelSpacing * 1.35)) / 100
+
         setPoints(prevState => {
             return [...prevState, {
-                x: x,
+                x: labelSpacing * 1.35,
                 y: y,
-                x2: x + dimensions.barWidth,
-                y2: labelSpacing,
-                yPoint: y - height,
+
                 axis: axis,
                 value: value,
-                height: -height,
-                barWidth: dimensions.barWidth
+                width: width,
+                height: barHeight
             }]
         })
     }
 
     useEffect(() => {
         if (context) {
-
-            context.fillStyle = theme.themes.mfc_color_primary
+            context.fillStyle = theme.themes.fabric_color_primary
             context.font = "600 14px Roboto";
-            if (dimensions.barWidth !== undefined)
-                drawChart(true)
 
-
+            if (height && dimensions.barHeight)
+                drawChart(true, undefined)
         }
         ref.current?.addEventListener('mousemove', handleMouseMove)
         return () => {
@@ -158,4 +152,4 @@ export default function useVerticalChart(props) {
 }
 
 
-useVerticalChart.propTypes = chartPropsTemplate
+useHorizontalChart.propTypes = chartPropsTemplate

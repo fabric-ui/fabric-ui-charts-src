@@ -1,7 +1,8 @@
 import React, {useContext, useEffect, useMemo, useRef, useState} from "react";
 import PropTypes from "prop-types";
-import {ThemeContext} from "mfc-core";
 import useDimensions from "./useDimensions";
+import ThemeContext from "../../../core/misc/context/ThemeContext";
+import animatedRects from "../utils/animatedRects";
 
 function animatedRect(
     {
@@ -58,43 +59,11 @@ const randomColor = () => {
 const padding = 32
 
 export default function useChart(props) {
-
-    const {biggest, iterations} = useMemo(() => {
-        let biggest
-        let iterations = []
-        props.data.forEach((e) => {
-            if (biggest === undefined)
-                biggest = parseInt(e[props.valueKey])
-            else if (parseInt(e[props.valueKey]) > biggest)
-                biggest = parseInt(e[props.valueKey])
-        })
-
-        let value = biggest
-        let percent = Math.ceil(value * .2)
-        let topValue = value - percent * 5
-
-        if (topValue < 0) {
-            topValue = topValue * (-1)
-            value = value + topValue
-            topValue = value - percent * 5
-        }
-
-        for (let i = 0; i < 6; i++) {
-            iterations.push({
-                value: (topValue > 0 ? topValue : value) - percent * (i)
-            })
-        }
-
-        biggest = iterations[0].value
-        return {biggest, iterations}
-    }, [props.valueKey, props.data])
-
     const theme = useContext(ThemeContext)
     const parentRef = useRef()
     const ref = useRef()
     const [points, setPoints] = useState([])
     const [context, setContext] = useState()
-
     const total = useMemo(() => {
         return props.data.reduce((total, el) => {
             return total + el[props.valueKey]
@@ -119,7 +88,7 @@ export default function useChart(props) {
             this.closePath();
             return this;
         }
-
+        CanvasRenderingContext2D.prototype.animatedRect = animatedRects
     }, [])
 
 
@@ -131,6 +100,34 @@ export default function useChart(props) {
         if (points.length > 0)
             setPoints([])
     }, [width, height, props.data])
+
+    const {biggest, iterations} = useMemo(() => {
+        let biggest
+        let iterations = []
+        props.data.forEach((e) => {
+            if (biggest === undefined)
+                biggest = parseInt(e[props.valueKey])
+            else if (parseInt(e[props.valueKey]) > biggest)
+                biggest = parseInt(e[props.valueKey])
+        })
+
+        let value = biggest
+        let percent = Math.ceil(value * .2)
+        let topValue = value - percent * 5
+
+        if (topValue < 0) {
+            topValue = topValue * (-1)
+            value = value + topValue
+            topValue = value - percent * 5
+        }
+
+        for (let i = 0; i < 6; i++) {
+            iterations.push((topValue > 0 ? topValue : value) - percent * (i))
+        }
+
+        biggest = iterations[0]
+        return {biggest, iterations}
+    }, [props.valueKey, props.data, width, height])
 
     return {
         iterations,

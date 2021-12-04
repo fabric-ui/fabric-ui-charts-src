@@ -7,16 +7,24 @@ import chartPropsTemplate from "./templates/chartPropsTemplate";
 import useHorizontalChart from "./variants/bar/horizontal/useHorizontalChart";
 
 
-export default function HorizontalBarChart(props) {
-    const {parentRef,ref, width, height} = useHorizontalChart(props)
+export default function BarChart(props) {
+    const {
+        parentRef,
+        ref,
+        width,
+        height
+    } = props.variant === 'vertical' ? useVerticalChart(props) : useHorizontalChart(props)
 
     return (
-        <div ref={parentRef}  className={[shared.wrapper, props.className].join(' ')} style={props.styles}>
+        <div ref={parentRef} className={[shared.wrapper, props.className].join(' ')} style={props.styles}>
             <h1 className={shared.title}>
                 {props.title}
             </h1>
-            <canvas ref={ref} width={width} height={height}/>
+            <canvas ref={ref}  width={width} height={height}/>
         </div>
     )
 }
-HorizontalBarChart.propTypes = chartPropsTemplate
+BarChart.propTypes = {
+    ...chartPropsTemplate,
+    variant: PropTypes.oneOf(['vertical', 'horizontal'])
+}

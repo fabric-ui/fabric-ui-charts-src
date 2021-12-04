@@ -30,7 +30,7 @@ export default function VerticalChart(props) {
             return [...prevState, {x: x, y: y, value: value}]
         })
 
-        context.fillStyle = theme.themes.mfc_color_primary
+        context.fillStyle = theme.themes.fabric_color_primary
         context.fillText(axis, x, ref.current.height);
     }
 
