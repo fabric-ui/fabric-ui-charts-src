@@ -1,9 +1,9 @@
 import React from "react";
 import PropTypes from 'prop-types'
 import shared from "./styles/Charts.module.css";
-import useVerticalChart from "./variants/bar/useVerticalChart";
+import useVerticalChart from "./variants/useVerticalChart";
 import chartPropsTemplate from "./templates/chartPropsTemplate";
-import useHorizontalChart from "./variants/bar/useHorizontalChart";
+import useHorizontalChart from "./variants/useHorizontalChart";
 
 
 export default function BarChart(props) {

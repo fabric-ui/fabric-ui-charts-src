@@ -1,6 +1,6 @@
 import React from "react";
 import shared from "./styles/Charts.module.css";
-import useLineChart from "./variants/line/useLineChart";
+import useLineChart from "./variants/useLineChart";
 import chartPropsTemplate from "./templates/chartPropsTemplate";
 
 

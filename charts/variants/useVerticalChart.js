@@ -1,11 +1,11 @@
-import useChart from "../../hooks/useChart";
+import useChart from "../hooks/useChart";
 import React, {useEffect, useState} from "react";
 
 import onMouseMove from "./onMouseMove";
 
-import chartPropsTemplate from "../../templates/chartPropsTemplate";
-import hexToRgba from "../../utils/hexToRgba";
-import useAsyncMemo from "../../utils/useAsyncMemo";
+import chartPropsTemplate from "../templates/chartPropsTemplate";
+import hexToRgba from "../utils/hexToRgba";
+import useAsyncMemo from "../utils/useAsyncMemo";
 
 
 export default function useVerticalChart(props) {
@@ -22,6 +22,10 @@ export default function useVerticalChart(props) {
 
     })
 
+    let [firstRender, setFirstRender] = useState(true)
+    let calledFirstRender = false
+
+
     const handleMouseMove = (event) => {
         const bBox = ref.current?.getBoundingClientRect()
         onMouseMove({
@@ -35,9 +39,12 @@ export default function useVerticalChart(props) {
             },
             points: points,
             drawChart: (onHover) => drawChart(true, onHover),
+            variant: 'vertical'
         })
     }
-
+    const handleMouseOut = () => {
+        drawChart(true)
+    }
     const dimensions = useAsyncMemo(() => {
         const length = props.data.length
         const o = ref.current ? (ref.current.width * 2) / (length * length) : undefined
@@ -46,8 +53,6 @@ export default function useVerticalChart(props) {
         return {offset: o, barWidth: w}
     }, [width, labelSpacing, ref.current])
 
-    let [firstRender, setFirstRender] = useState(true)
-    let calledFirstRender = false
     const drawChart = (clear, onHover) => {
         if (clear)
             clearCanvas()
@@ -68,13 +73,8 @@ export default function useVerticalChart(props) {
         context.fillStyle = hexToRgba(color, .65)
 
         if (points.length === 0)
-            props.data.forEach((el, index) => {
-                getPoints({
-                    axis: el[props.axis.field],
-                    value: el[props.value.field],
-                    context: context,
-                    position: index
-                })
+            props.data.forEach((point, index) => {
+                getPoints({point: point, position: index})
             })
         else if (firstRender && !calledFirstRender) {
             calledFirstRender = true
@@ -110,8 +110,8 @@ export default function useVerticalChart(props) {
             })
     }
 
-    const getPoints = ({axis, value, position}) => {
-        const pVariation = (value * 100) / biggest
+    const getPoints = ({point, position}) => {
+        const pVariation = (point[props.value.field] * 100) / biggest
         const x = (position) * Math.abs(dimensions.barWidth) + labelSpacing * 1.25 + dimensions.offset + dimensions.offset * (position)
 
         const height = (pVariation * (ref.current.height - labelSpacing * 1.35)) / 100
@@ -121,8 +121,10 @@ export default function useVerticalChart(props) {
                 x: x,
                 y: y,
 
-                axis: axis,
-                value: value,
+                axis: point[props.axis.field],
+                axisLabel: props.axis.label,
+                value: point[props.value.field],
+                valueLabel: props.value.label,
                 height: height,
                 width: dimensions.barWidth
             }]
@@ -130,20 +132,17 @@ export default function useVerticalChart(props) {
     }
 
     useEffect(() => {
-        if (context) {
-
-            context.fillStyle = theme.themes.fabric_color_primary
-            context.font = "600 14px Roboto";
-            if (dimensions.barWidth !== undefined)
-                drawChart(true, undefined)
-
-
+        if (context && dimensions.barWidth !== undefined) {
+            context.defaultFont()
+            drawChart(true, undefined)
         }
+
         ref.current?.addEventListener('mousemove', handleMouseMove)
+        ref.current?.addEventListener('mouseout', handleMouseOut)
         return () => {
             ref.current?.removeEventListener('mousemove', handleMouseMove)
+            ref.current?.removeEventListener('mouseout', handleMouseOut)
         }
-
     }, [props.data, context, width, height, theme, firstRender, dimensions, points])
 
 

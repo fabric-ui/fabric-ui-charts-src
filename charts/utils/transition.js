@@ -1,13 +1,13 @@
 import hexToRgba from "./hexToRgba";
 
-export default function transition(backwards, color, timestamp, drawContent){
+export default function transition(backwards, color, timestamp, drawContent, finalOpacity=1){
     let start, previousTimeStamp
 
     const step = (t) => {
         if (start === undefined)
             start = t;
         const elapsed = t - start;
-        const rgbaColor = hexToRgba(color, (elapsed) / timestamp)
+        const rgbaColor = hexToRgba(color, finalOpacity * ((elapsed) / timestamp))
 
         if (previousTimeStamp !== t)
             drawContent(rgbaColor)

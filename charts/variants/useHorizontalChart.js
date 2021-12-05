@@ -1,10 +1,10 @@
-import useChart from "../../hooks/useChart";
+import useChart from "../hooks/useChart";
 import React, {useEffect, useState} from "react";
 
 import onMouseMove from "./onMouseMove";
-import chartPropsTemplate from "../../templates/chartPropsTemplate";
-import hexToRgba from "../../utils/hexToRgba";
-import useAsyncMemo from "../../utils/useAsyncMemo";
+import chartPropsTemplate from "../templates/chartPropsTemplate";
+import hexToRgba from "../utils/hexToRgba";
+import useAsyncMemo from "../utils/useAsyncMemo";
 
 
 export default function useHorizontalChart(props) {
@@ -33,25 +33,21 @@ export default function useHorizontalChart(props) {
             points: points,
             drawChart: (onHover) =>
                 drawChart(true, onHover),
+            variant: 'horizontal'
         })
     }
-
+    const handleMouseOut = () => {
+        drawChart(true)
+    }
     const dimensions = useAsyncMemo(() => {
         const length = props.data.length
-        const o = ref.current ? (ref.current.height * 2 )/(length*length): undefined
-        const h = ref.current ? ((ref.current.height - labelSpacing ) / length) - o : undefined
+        const o = ref.current ? (ref.current.height * 2) / (length * length) : undefined
+        const h = ref.current ? ((ref.current.height - labelSpacing) / length) - o : undefined
         props.data.forEach((el, index) => {
-            getPoints({
-                axis: el[props.axis.field],
-                value: el[props.value.field],
-                context: context,
-                position: index,
-                barHeight: h,
-                offset: o
-            })
+            getPoints({point: el, position: index, barHeight: h, offset: o})
         })
         return {offset: o, barHeight: h}
-    }, [height, labelSpacing, ref.current])
+    }, [height, labelSpacing, ref.current, width])
 
     let [firstRender, setFirstRender] = useState(true)
     let calledFirstRender = false
@@ -75,8 +71,6 @@ export default function useHorizontalChart(props) {
 
         const color = props.color ? props.color : '#0095ff'
         context.fillStyle = hexToRgba(color, .65)
-
-        // if (points.length === 0)
 
         if (firstRender && !calledFirstRender && points.length > 0) {
             calledFirstRender = true
@@ -104,15 +98,17 @@ export default function useHorizontalChart(props) {
                     context.fillStyle = hexToRgba(props.color ? props.color : '#0095ff', .65)
                 }
             )
-        } else
+        } else {
+            console.log('Drawing', points)
             points.forEach((p, i) => {
                 context.fillStyle = onHover === i ? hexToRgba(color, .9) : hexToRgba(color, .65)
                 context.fillRect(p.x, p.y, p.width, p.height)
             })
+        }
     }
 
-    const getPoints = ({axis, value, position, barHeight, offset}) => {
-        const pVariation = (value * 100) / biggest
+    const getPoints = ({point, position, barHeight, offset}) => {
+        const pVariation = (point[props.value.field] * 100) / biggest
         const y = (position) * (Math.abs(barHeight) + offset)
         const width = (pVariation * (ref.current.width - labelSpacing * 1.75)) / 100
 
@@ -121,8 +117,10 @@ export default function useHorizontalChart(props) {
                 x: labelSpacing * 1.35,
                 y: y,
 
-                axis: axis,
-                value: value,
+                axis: point[props.axis.field],
+                value: point[props.value.field],
+                axisLabel: props.axis.label,
+                valueLabel: props.value.label,
                 width: width,
                 height: barHeight
             }]
@@ -130,16 +128,17 @@ export default function useHorizontalChart(props) {
     }
 
     useEffect(() => {
-        if (context) {
-            context.fillStyle = theme.themes.fabric_color_primary
-            context.font = "600 14px Roboto";
 
-            if (height && dimensions.barHeight)
-                drawChart(true, undefined)
+        if (context && dimensions.barHeight !== undefined) {
+            context.defaultFont()
+            drawChart(true, undefined)
         }
+
         ref.current?.addEventListener('mousemove', handleMouseMove)
+        ref.current?.addEventListener('mouseout', handleMouseOut)
         return () => {
             ref.current?.removeEventListener('mousemove', handleMouseMove)
+            ref.current?.removeEventListener('mouseout', handleMouseOut)
         }
 
     }, [props.data, context, width, height, theme, firstRender, dimensions, points])

@@ -6,6 +6,7 @@ import animatedRects from "../utils/animatedRects";
 import roundRect from "../utils/roundRect";
 import transition from "../utils/transition";
 import drawGrid from "../utils/drawGrid";
+import canvasTooltip from "../canvasTooltip";
 
 const randomColor = () => {
     let n = (Math.random() * 0xfffff * 1000000).toString(16);
@@ -28,12 +29,19 @@ export default function useChart(props) {
 
 
     useEffect(() => {
-        setContext(ref.current?.getContext('2d'))
+        const ctx = ref.current?.getContext('2d')
+
+        setContext(ctx)
 
         CanvasRenderingContext2D.prototype.roundRect = roundRect
+        CanvasRenderingContext2D.prototype.defaultFont = function (color = theme.themes.fabric_color_primary) {
+            this.fillStyle = color
+            this.font = "500 14px Roboto";
+        }
         CanvasRenderingContext2D.prototype.animatedRect = animatedRects
         CanvasRenderingContext2D.prototype.opacityTransition = transition
         CanvasRenderingContext2D.prototype.grid = drawGrid
+        CanvasRenderingContext2D.prototype.tooltip = canvasTooltip
     }, [])
 
 
