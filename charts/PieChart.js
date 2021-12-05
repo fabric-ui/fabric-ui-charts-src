@@ -1,5 +1,4 @@
-import React, {useEffect} from "react";
-import PropTypes from 'prop-types'
+import React from "react";
 import shared from "./styles/Charts.module.css";
 import useLineChart from "./variants/line/useLineChart";
 import chartPropsTemplate from "./templates/chartPropsTemplate";

@@ -29,11 +29,9 @@ export default function animatedRects(points, clear, initialWidth, initialHeight
         if (start === undefined)
             start = t;
         const elapsed = t - start;
-
-
         if (previousTimeStamp !== t)
             draw(elapsed)
-        if (timestamp > elapsed ) { // Stop the animation after 2 seconds
+        if (timestamp > elapsed ) {
             previousTimeStamp = t
             requestAnimationFrame(step);
         } else {

@@ -3,53 +3,9 @@ import PropTypes from "prop-types";
 import useDimensions from "./useDimensions";
 import ThemeContext from "../../../core/misc/context/ThemeContext";
 import animatedRects from "../utils/animatedRects";
-
-function animatedRect(
-    {
-        placement: {x, y},
-        dimensions: {
-            initialWidth,
-            initialHeight,
-            finalWidth,
-            finalHeight
-        },
-        animationTimestamp,
-        clear
-    }
-) {
-    let currentDimensions = {width: initialWidth, height: initialHeight}
-    const heightAdjustment = (finalHeight * 100 / animationTimestamp)
-    const widthAdjustment = finalWidth / animationTimestamp
-    let start, previousTimeStamp
-
-
-    const step = (timestamp) => {
-
-        if (start === undefined)
-            start = timestamp;
-        const elapsed = timestamp - start;
-
-        if (previousTimeStamp !== timestamp) {
-            clear()
-            this.fillRect(x, y, currentDimensions.width, currentDimensions.height)
-            this.fill()
-
-            currentDimensions = {
-                width: initialWidth !== finalWidth ? currentDimensions.width + widthAdjustment : currentDimensions.width,
-                height: initialHeight !== finalHeight ? currentDimensions.height + heightAdjustment : currentDimensions.height
-            }
-            // console.log(currentDimensions)
-        }
-        if (elapsed < animationTimestamp) { // Stop the animation after 2 seconds
-            previousTimeStamp = timestamp
-            requestAnimationFrame(step);
-        }
-    }
-
-    requestAnimationFrame(step)
-
-
-}
+import roundRect from "../utils/roundRect";
+import transition from "../utils/transition";
+import drawGrid from "../utils/drawGrid";
 
 const randomColor = () => {
     let n = (Math.random() * 0xfffff * 1000000).toString(16);
@@ -72,25 +28,13 @@ export default function useChart(props) {
 
 
     useEffect(() => {
-        const ctx = ref.current?.getContext('2d')
+        setContext(ref.current?.getContext('2d'))
 
-        setContext(ctx)
-
-        CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
-            if (w < 2 * r) r = w / 2;
-            if (h < 2 * r) r = h / 2;
-            this.beginPath();
-            this.moveTo(x + r, y);
-            this.arcTo(x + w, y, x + w, y + h, r);
-            this.arcTo(x + w, y + h, x, y + h, r);
-            this.arcTo(x, y + h, x, y, r);
-            this.arcTo(x, y, x + w, y, r);
-            this.closePath();
-            return this;
-        }
+        CanvasRenderingContext2D.prototype.roundRect = roundRect
         CanvasRenderingContext2D.prototype.animatedRect = animatedRects
+        CanvasRenderingContext2D.prototype.opacityTransition = transition
+        CanvasRenderingContext2D.prototype.grid = drawGrid
     }, [])
-
 
 
     const {width, height} = useDimensions(parentRef.current)
@@ -102,31 +46,24 @@ export default function useChart(props) {
     }, [width, height, props.data])
 
     const {biggest, iterations} = useMemo(() => {
-        let biggest
-        let iterations = []
-        props.data.forEach((e) => {
-            if (biggest === undefined)
-                biggest = parseInt(e[props.valueKey])
-            else if (parseInt(e[props.valueKey]) > biggest)
-                biggest = parseInt(e[props.valueKey])
-        })
+        let q, b = Math.max(...props.data.map(d => d[props.valueKey])), nb, k, iterations = []
 
-        let value = biggest
-        let percent = Math.ceil(value * .2)
-        let topValue = value - percent * 5
+        if (props.variant === 'horizontal')
+            q = Math.round(width / 350)
+        else
+            q = Math.round(height / 100)
 
-        if (topValue < 0) {
-            topValue = topValue * (-1)
-            value = value + topValue
-            topValue = value - percent * 5
+        k = Math.ceil(b / q)
+        k = Math.ceil(k / q) * q
+        nb = k * q
+
+        let currentValue = nb
+        for (let i = 0; i <= q; i++) {
+            iterations.push(currentValue)
+            currentValue -= k
         }
 
-        for (let i = 0; i < 6; i++) {
-            iterations.push((topValue > 0 ? topValue : value) - percent * (i))
-        }
-
-        biggest = iterations[0]
-        return {biggest, iterations}
+        return {biggest: (nb ? nb : b), iterations}
     }, [props.valueKey, props.data, width, height])
 
     return {
@@ -140,10 +77,9 @@ export default function useChart(props) {
 }
 
 useChart.propTypes = {
-
     data: PropTypes.arrayOf(PropTypes.object).isRequired,
-
     valueKey: PropTypes.string.isRequired,
     axisKey: PropTypes.string.isRequired,
-    onMouseMove: PropTypes.func.isRequired
+    onMouseMove: PropTypes.func.isRequired,
+    variant: PropTypes.oneOf(['horizontal', 'vertical'])
 }

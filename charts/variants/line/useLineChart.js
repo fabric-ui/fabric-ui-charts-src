@@ -1,8 +1,7 @@
 import useChart from "../../hooks/useChart";
 import React, {useEffect} from "react";
-import PropTypes from "prop-types";
 import onMouseMove from "./onMouseMove";
-import drawGrid from "./drawGrid";
+
 import chartPropsTemplate from "../../templates/chartPropsTemplate";
 
 
@@ -11,9 +10,9 @@ export default function useLineChart(props) {
 
     const drawLine = ({axis, value, position, context}) => {
         const pVariation = (value * 100) / biggest
-        const height = ((pVariation * (ref.current.height - labelSpacing * 2 - 4)) / 100)
-        let x = (position * ((ref.current.width - labelSpacing * 2) / (props.data.length - 1))) + labelSpacing * 1.5,
-            y = (ref.current.height - labelSpacing) - height - 8
+        const height = ((pVariation * (ref.current.height - labelSpacing*1.35 )) / 100)
+        let x = (position * (ref.current.width - labelSpacing * 1.75 - 4) / (props.data.length -1)) + labelSpacing * 1.35,
+            y = ref.current.height - labelSpacing - height
 
         if (points.length === 0)
             setPoints(prevState => {
@@ -43,14 +42,17 @@ export default function useLineChart(props) {
     const drawChart = (ctx, clear) => {
         if (clear)
             clearCanvas()
-        drawGrid({
+        ctx.grid({
+            variant: 'line',
             ctx: context,
             iterations: iterations,
             labelPadding: labelSpacing,
             data: props.data,
             element: ref.current,
             color: theme.themes.fabric_color_quaternary,
-            axisKey: props.axis.field
+            axisKey: props.axis.field,
+            width: ((ref.current.width - labelSpacing * 1.35) / (props.data.length)),
+            offset: 0
         })
         props.data.forEach((el, index) => {
             drawLine({
