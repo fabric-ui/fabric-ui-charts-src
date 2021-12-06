@@ -12,16 +12,7 @@ export default function LineChart(props) {
             <h1 className={shared.title}>
                 {props.title}
             </h1>
-
-            {/*<div style={{display: 'flex'}}>*/}
-            {/*    <label className={shared.horizontalLabel}>*/}
-            {/*        {props.value.label}*/}
-            {/*    </label>*/}
-                <canvas ref={ref} width={width - 8} height={height}/>
-            {/*</div>*/}
-            {/*<label className={shared.label}>*/}
-            {/*    {props.axis.label}*/}
-            {/*</label>*/}
+            <canvas ref={ref} width={width - 8} height={height}/>
         </div>
     )
 }
