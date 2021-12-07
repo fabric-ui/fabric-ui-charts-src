@@ -21,7 +21,6 @@ export default function onHoverPieSlice(props) {
                 }
                 drawn = true
 
-                console.log('HERE')
                 // if (i === props.ctx.lastOnHover)
                     props.ctx.tooltip(
                         {...p, width: 20,height: 20, x: props.event.x, y: props.event.y},

@@ -7,6 +7,7 @@ import chartPropsTemplate from "../templates/chartPropsTemplate";
 import hexToRgba from "../utils/hexToRgba";
 import useAsyncMemo from "../utils/useAsyncMemo";
 import onHoverPieSlice from "./onHoverPieSlice";
+import animatedSlices from "../utils/animatedSlices";
 
 
 export default function usePieChart(props) {
@@ -25,7 +26,7 @@ export default function usePieChart(props) {
     const placement = useAsyncMemo(() => {
         let cx = ref.current.width / 2
         let cy = ref.current.height / 2
-        let radius = (cx > cy ? cy : cx) - cy * .1
+        let radius = (cx > cy ? cy : cx) - cy * .3
 
         return {cx, cy, radius}
     }, [width, height])
@@ -55,70 +56,65 @@ export default function usePieChart(props) {
         drawChart(true)
     }
 
-
     const drawChart = (clear, onHover) => {
         if (clear)
             clearCanvas()
 
-        let startAngle = 0
-        let newPoints = []
+        if (points.length === 0) {
+            let startAngle = 0, newPoints = []
 
-        props.data.forEach((el, index) => {
-            let endAngle, deltaX, deltaY, theta, newRadius = placement.radius
-            const color = points.length === 0 ? randomColor() : points[index].color
+            props.data.forEach((point, index) => {
+                    let endAngle = (point[props.value.field] / total) * (Math.PI * 2) + startAngle
+                    const color = points.length === 0 ? randomColor() : points[index].color
 
+                    if (onHover === index || onHover === undefined)
+                        newPoints.push({
+                            value: point[props.value.field],
+                            color: color,
+                            startAngle: startAngle,
+                            endAngle: endAngle,
+                            valueLabel: props.value.label,
+                            axis: point[props.axis.field],
+                        })
 
-            context.fillStyle = color
-            context.lineWidth = 1
-            context.strokeStyle = color
-            context.beginPath()
-
-            endAngle = (el[props.value.field] / total) * (Math.PI * 2) + startAngle
-            if (points.length === 0)
-                newPoints.push({
-                    value: el[props.value.field],
-                    color: color,
-                    startAngle: startAngle,
-                    endAngle: endAngle,
-                    valueLabel: props.value.label,
-                    axis: el[props.axis.field]
-                })
-
-            context.moveTo(placement.cx, placement.cy)
-            context.arc(placement.cx, placement.cy, placement.radius, startAngle, endAngle, false)
-            context.lineTo(placement.cx, placement.cy)
-            context.fill()
-            context.stroke()
-
-            context.closePath()
-
-            if (onHover === index) {
-                context.beginPath()
-
-                newRadius = newRadius * 1.05
-                context.moveTo(placement.cx, placement.cy)
-                context.arc(placement.cx, placement.cy, newRadius, startAngle, endAngle, false)
-                context.lineTo(placement.cx, placement.cy)
-                context.fill()
-                console.log(theme.themes.fabric_background_primary)
-                context.strokeStyle = theme.themes.fabric_background_primary
-                context.stroke()
-            }
-
-            const message = `${el[props.axis.field]}: ${(el[props.value.field] * 100 / total).toFixed(2)}%`
-            theta = (startAngle + endAngle) / 2
-            deltaY = Math.sin(theta) * 1.05 * newRadius
-            deltaX = Math.cos(theta) * 1.1 * newRadius
-
-            context.fillText(message, deltaX + placement.cx, deltaY + placement.cy)
-
-            context.closePath()
-            startAngle = endAngle
-        })
-
-        if (points.length === 0)
+                    startAngle = endAngle
+                }
+            )
             setPoints(newPoints)
+        } else {
 
+            context.animatedSlices(
+                points,
+                () => clearCanvas(),
+                firstRender && !calledFirstRender ? 500 : 0,
+                // 500,
+                () => {
+                    setFirstRender(false)
+
+                },
+                (point, radius) => {
+                    let deltaX, deltaY, theta, textAngle
+                    const message = `${point.axis}: ${(point.value * 100 / total).toFixed(2)}%`
+
+                    context.fillStyle = point.color
+                    context.lineWidth = 2
+                    context.strokeStyle = theme.themes.fabric_background_primary
+
+                    theta = (point.startAngle + point.endAngle) / 2
+                    textAngle = (theta * 180 / Math.PI)
+                    deltaY = Math.sin(theta) * (radius + 14) * 1.1
+                    deltaX = Math.cos(theta) * (radius + (textAngle > 90 && textAngle < 270 ? (message.length * 8) : 0)) * 1.1
+                    context.fillText(message, (deltaX + placement.cx), deltaY + placement.cy)
+                    context.closePath()
+                },
+                placement.radius,
+                placement.cx,
+                placement.cy,
+                onHover
+
+            )
+            calledFirstRender = true
+        }
     }
 
 

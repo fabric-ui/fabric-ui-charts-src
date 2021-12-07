@@ -23,6 +23,8 @@ export default function animatedRects(points, clear, initialWidth, initialHeight
                 height: initialHeight !== newPoints[i].height ? countH : newPoints[i].height
             }
         })
+
+
     }
 
     const step = (t) => {
