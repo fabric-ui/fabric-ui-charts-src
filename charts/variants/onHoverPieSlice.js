@@ -10,41 +10,45 @@ export default function onHoverPieSlice(props) {
         props.points.forEach((p, i) => {
             let pointAngle = getAngle({x: props.event.x - props.placement.cx, y: props.event.y - props.placement.cy})
 
-            if(pointAngle < 0)
-                pointAngle +=6.28319
+            if (pointAngle < 0)
+                pointAngle += 6.28319
 
-            if (pointAngle>= p.startAngle && pointAngle<= p.endAngle) {
+            if (pointAngle >= p.startAngle && pointAngle <= p.endAngle) {
 
                 const placement = {
                     align: 'middle',
-                    justify:'end'
+                    justify: 'end'
                 }
                 drawn = true
 
-                // if (i === props.ctx.lastOnHover)
+
+                if (i === props.ctx.lastOnHover)
                     props.ctx.tooltip(
-                        {...p, width: 20,height: 20, x: props.event.x, y: props.event.y},
+                        {...p, width: 0, height: 0, x: p.tooltipX, y: p.tooltipY},
                         'rgba(0,0,0,.75)',
                         props.event,
                         placement,
                         () => props.drawChart(i)
                     )
-                // else
-                //     props.ctx.opacityTransition(false, '#000', 250, (color) => {
-                //         props.ctx.tooltip(
-                //             {...p, width: 20,height: 20, x: props.event.x, y: props.event.y},
-                //             color,
-                //             props.event,
-                //             placement,
-                //             () => props.drawChart(i)
-                //         )
-                //     }, .75)
+                else
+                    props.ctx.opacityTransition(
+                        false,
+                        '#000',
+                        300,
+                        (color) => {
+                            props.ctx.tooltip(
+                                {...p, width: 0, height: 0, x: p.tooltipX, y: p.tooltipY},
+                                color,
+                                props.event,
+                                placement,
+                                () => props.drawChart(i)
+                            )
+                        }, .75)
 
                 CanvasRenderingContext2D.prototype.lastOnHover = i
             }
         })
-    }
-    else
+    } else
         drawn = false
     if (drawn === false) {
         CanvasRenderingContext2D.prototype.lastOnHover = undefined

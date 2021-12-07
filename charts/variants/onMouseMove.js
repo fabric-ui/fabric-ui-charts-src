@@ -21,7 +21,11 @@ export default function onMouseMove(props) {
                     () => props.drawChart(i)
                 )
             else
-                props.ctx.opacityTransition(false, '#000', 250, (color) => {
+                props.ctx.opacityTransition(
+                    false,
+                    '#000',
+                    250,
+                    (color) => {
                     props.ctx.tooltip(
                         p,
                         color,

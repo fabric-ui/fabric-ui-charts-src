@@ -1,80 +1,61 @@
-export default function animatedSlices(points, clear, timestamp, setFirstRender, onBeforeDraw, radius, cx, cy, onHover) {
-    let start, previousTimeStamp
-    let newPoints = [...points].map(p => {
-        return {...p, radius: 0}
-    })
+import hexToRgba from "./hexToRgba";
 
-    // points.forEach((p, i) => {
-    //     animateSlice()
-    //
-    // })
+function getEase(currentProgress, start, distance, steps, power) {
+    currentProgress /= steps / 2;
+    if (currentProgress < 1) {
+        return (distance / 2) * (Math.pow(currentProgress, power)) + start;
+    }
+    currentProgress -= 2;
+    return distance / 2 * (Math.pow(currentProgress, power) + 2) + start;
+}
+
+export default function animateSlice(strokeStyle, slice, cx, cy, timestamp, targetRadius, isOnHover, index, onEnded) {
+    let {startAngle, endAngle, color, radius} = {...slice}
+    let start, previousTimeStamp, targetTimestamp = timestamp === 0 ? 0 : timestamp + index * 50
+    if (radius === undefined)
+        radius = 0
 
     const draw = (elapsed) => {
-        clear()
-        points.forEach((p, i) => {
-            const r = onHover === i ? newPoints[i].radius * 1.05 : newPoints[i].radius
-            onBeforeDraw(p, r)
-            this.fillStyle = p.color
-            this.lineWidth = 2
+        this.clearArc(cx, cy, targetRadius * 100, startAngle, endAngle)
 
-            this.beginPath()
+        this.fillStyle = !isOnHover ? hexToRgba(color, targetTimestamp && targetTimestamp !== 0 ? .75*elapsed/targetTimestamp : .75) : color
+        console.log(targetTimestamp && targetTimestamp !== 0)
+        this.lineWidth = 2
+        this.strokeStyle = strokeStyle
 
-            this.moveTo(cx, cy)
-            this.arc(cx, cy, r, newPoints[i].startAngle, newPoints[i].endAngle, false)
-            this.lineTo(cx, cy)
-            this.fill()
-            this.stroke()
+        this.beginPath()
 
-            this.closePath()
+        this.moveTo(cx, cy)
+        this.arc(cx, cy, radius, startAngle, endAngle, false)
+        this.lineTo(cx, cy)
+        this.fill()
+        this.stroke()
 
-            newPoints[i].radius = radius * ((elapsed) / (timestamp ))
-        })
+        this.closePath()
+
+        radius = getEase(elapsed, 0, targetRadius, targetTimestamp, 5)
     }
     const step = (t) => {
         if (start === undefined)
             start = t;
         const elapsed = t - start;
-        if (previousTimeStamp !== t)
+        if (previousTimeStamp !== t) {
             draw(elapsed)
-        if (timestamp > elapsed) {
+        }
+        if (targetTimestamp > elapsed) {
             previousTimeStamp = t
             requestAnimationFrame(step);
         } else {
-            draw(elapsed)
-            setFirstRender()
+            radius = targetRadius
+            draw(targetTimestamp)
+            onEnded()
         }
     }
-
-    if (timestamp > 0)
+    if (targetTimestamp > 0)
         requestAnimationFrame(step)
     else {
-        newPoints = newPoints.map(e => {
-            return {
-                ...e,
-                radius: radius
-            }
-        })
-        draw(timestamp)
+        radius = isOnHover ? targetRadius * 1.05 : targetRadius
+        draw(targetTimestamp)
+        onEnded()
     }
-}
-
-
-function animateSlice(slice, cx, cy, ctx, onBeforeDraw){
-    const {startAngle, endAngle, color, radius} = slice
-    ctx.clearArc()
-
-    const r = onHover === i ? newPoints[i].radius * 1.05 : newPoints[i].radius
-    onBeforeDraw(slice, radius)
-    this.fillStyle = p.color
-    this.lineWidth = 2
-
-    this.beginPath()
-
-    this.moveTo(cx, cy)
-    this.arc(cx, cy, r, newPoints[i].startAngle, newPoints[i].endAngle, false)
-    this.lineTo(cx, cy)
-    this.fill()
-    this.stroke()
-
-    this.closePath()
 }

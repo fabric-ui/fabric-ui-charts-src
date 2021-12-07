@@ -7,7 +7,8 @@ import roundRect from "../utils/roundRect";
 import transition from "../utils/transition";
 import drawGrid from "../utils/drawGrid";
 import canvasTooltip from "../canvasTooltip";
-import animatedSlices from "../utils/animatedSlices";
+
+import animateSlice from "../utils/animatedSlices";
 
 const randomColor = () => {
     let n = (Math.random() * 0xfffff * 1000000).toString(16);
@@ -43,12 +44,18 @@ export default function useChart(props) {
         CanvasRenderingContext2D.prototype.opacityTransition = transition
         CanvasRenderingContext2D.prototype.grid = drawGrid
         CanvasRenderingContext2D.prototype.tooltip = canvasTooltip
-        CanvasRenderingContext2D.prototype.animatedSlices = animatedSlices
+        CanvasRenderingContext2D.prototype.animateSlice = animateSlice
 
-        CanvasRenderingContext2D.prototype.clearPath = function(context, cx, cy, radius, startAngle, endAngle){
+        CanvasRenderingContext2D.prototype.clearArc = function(cx, cy, radius, startAngle, endAngle){
             this.globalCompositeOperation = 'destination-out'
+
+            this.beginPath()
+            // this.fillStyle = 'white'
             this.arc(cx, cy, radius, startAngle, endAngle, false)
             this.fill();
+            this.closePath()
+
+            this.globalCompositeOperation = 'source-over'
         }
     }, [])
 

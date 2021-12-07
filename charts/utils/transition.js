@@ -7,7 +7,7 @@ export default function transition(backwards, color, timestamp, drawContent, fin
         if (start === undefined)
             start = t;
         const elapsed = t - start;
-        const rgbaColor = hexToRgba(color, finalOpacity * ((elapsed) / timestamp))
+        const rgbaColor = hexToRgba(color,  ( finalOpacity * ((elapsed) / timestamp)))
 
         if (previousTimeStamp !== t)
             drawContent(rgbaColor)

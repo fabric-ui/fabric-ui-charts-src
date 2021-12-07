@@ -24,16 +24,16 @@ export default function usePieChart(props) {
     })
 
     const placement = useAsyncMemo(() => {
-        let cx = ref.current.width / 2
-        let cy = ref.current.height / 2
-        let radius = (cx > cy ? cy : cx) - cy * .3
+        if (width !== undefined && height !== undefined) {
+            let cx = ref.current.width / 2
+            let cy = ref.current.height / 2
+            let radius = (cx > cy ? cy : cx) - cy * .3
 
-        return {cx, cy, radius}
+            // console.log()
+            return {cx, cy, radius}
+        } else
+            return undefined
     }, [width, height])
-
-
-    let [firstRender, setFirstRender] = useState(true)
-    let calledFirstRender = false
 
 
     const handleMouseMove = (event) => {
@@ -59,78 +59,83 @@ export default function usePieChart(props) {
     const drawChart = (clear, onHover) => {
         if (clear)
             clearCanvas()
+        const filteredData = props.data.filter(e => e[props.value.field] !== 0)
+        let startAngle = 0, newPoints = []
 
-        if (points.length === 0) {
-            let startAngle = 0, newPoints = []
+        filteredData.forEach((point, index) => {
+                let tooltipY, tooltipX, endAngle = (point[props.value.field] / total) * (Math.PI * 2) + startAngle
+                const color = points.length === 0 ? randomColor() : points[index].color
 
-            props.data.forEach((point, index) => {
-                    let endAngle = (point[props.value.field] / total) * (Math.PI * 2) + startAngle
-                    const color = points.length === 0 ? randomColor() : points[index].color
 
-                    if (onHover === index || onHover === undefined)
-                        newPoints.push({
-                            value: point[props.value.field],
-                            color: color,
-                            startAngle: startAngle,
-                            endAngle: endAngle,
-                            valueLabel: props.value.label,
-                            axis: point[props.axis.field],
-                        })
+                tooltipY = Math.sin((startAngle + endAngle) / 2) * (placement.radius / 2) * 1.1
+                tooltipX = Math.cos((startAngle + endAngle) / 2) * (placement.radius / 2) * 1.1
 
-                    startAngle = endAngle
+                const newPoint = {
+                    value: point[props.value.field],
+                    color: color,
+                    startAngle: startAngle,
+                    endAngle: endAngle,
+                    valueLabel: props.value.label,
+                    axis: point[props.axis.field],
+                    tooltipX: tooltipX + placement.cx,
+                    tooltipY: tooltipY + placement.cy
                 }
-            )
-            setPoints(newPoints)
-        } else {
+                if (points.length === 0)
+                    newPoints.push(newPoint)
+                context.animateSlice(
+                    theme.themes.fabric_background_primary,
+                    newPoint,
+                    placement.cx,
+                    placement.cy,
+                    context.animationEnded ? 0 : 500,
+                    placement.radius,
+                    onHover === index,
+                    index,
+                    () => {
 
-            context.animatedSlices(
-                points,
-                () => clearCanvas(),
-                firstRender && !calledFirstRender ? 500 : 0,
-                // 500,
-                () => {
-                    setFirstRender(false)
+                        let deltaX, deltaY, theta, textAngle
+                        const message = `${newPoint.axis}: ${(newPoint.value * 100 / total).toFixed(2)}%`
+                        context.font = '600 14px Roboto'
+                        context.fillStyle = newPoint.color
+                        context.lineWidth = 2
 
-                },
-                (point, radius) => {
-                    let deltaX, deltaY, theta, textAngle
-                    const message = `${point.axis}: ${(point.value * 100 / total).toFixed(2)}%`
+                        theta = (newPoint.startAngle + newPoint.endAngle) / 2
+                        textAngle = (theta * 180 / Math.PI)
+                        deltaY = Math.sin(theta) * (placement.radius + 14) * 1.1
+                        deltaX = Math.cos(theta) * (placement.radius + (textAngle > 90 && textAngle < 270 ? (message.length * 8) : 0)) * 1.1
+                        context.fillText(message, (deltaX + placement.cx), deltaY + placement.cy)
+                        context.closePath()
 
-                    context.fillStyle = point.color
-                    context.lineWidth = 2
-                    context.strokeStyle = theme.themes.fabric_background_primary
+                        if (index === filteredData.length - 1 && points.length === 0)
+                            setPoints(newPoints)
 
-                    theta = (point.startAngle + point.endAngle) / 2
-                    textAngle = (theta * 180 / Math.PI)
-                    deltaY = Math.sin(theta) * (radius + 14) * 1.1
-                    deltaX = Math.cos(theta) * (radius + (textAngle > 90 && textAngle < 270 ? (message.length * 8) : 0)) * 1.1
-                    context.fillText(message, (deltaX + placement.cx), deltaY + placement.cy)
-                    context.closePath()
-                },
-                placement.radius,
-                placement.cx,
-                placement.cy,
-                onHover
+                        context.animationEnded = true
+                    })
+                startAngle = endAngle
+            }
+        )
 
-            )
-            calledFirstRender = true
-        }
+
     }
 
 
     useEffect(() => {
-        if (context) {
+
+        if (context && !isNaN(width) && width !== undefined && placement !== undefined) {
             context.defaultFont()
             drawChart(true, undefined)
+
+            if (context.animationEnded) {
+                ref.current?.addEventListener('mousemove', handleMouseMove)
+                ref.current?.addEventListener('mouseout', handleMouseOut)
+            }
         }
 
-        ref.current?.addEventListener('mousemove', handleMouseMove)
-        ref.current?.addEventListener('mouseout', handleMouseOut)
         return () => {
             ref.current?.removeEventListener('mousemove', handleMouseMove)
             ref.current?.removeEventListener('mouseout', handleMouseOut)
         }
-    }, [props.data, context, width, height, theme, firstRender, points])
+    }, [total, context, width, height, theme, points, placement])
 
 
     return {ref, width, height, parentRef}
