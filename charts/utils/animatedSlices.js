@@ -1,13 +1,7 @@
 import hexToRgba from "./hexToRgba";
+import getEase from "./getEase";
 
-function getEase(currentProgress, start, distance, steps, power) {
-    currentProgress /= steps / 2;
-    if (currentProgress < 1) {
-        return (distance / 2) * (Math.pow(currentProgress, power)) + start;
-    }
-    currentProgress -= 2;
-    return distance / 2 * (Math.pow(currentProgress, power) + 2) + start;
-}
+
 
 export default function animateSlice(strokeStyle, slice, cx, cy, timestamp, targetRadius, isOnHover, index, onEnded) {
     let {startAngle, endAngle, color, radius} = {...slice}

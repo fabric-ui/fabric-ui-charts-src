@@ -3,6 +3,7 @@ import shared from "./styles/Charts.module.css";
 import useLineChart from "./variants/useLineChart";
 import chartPropsTemplate from "./templates/chartPropsTemplate";
 import usePieChart from "./variants/usePieChart";
+import PropTypes from "prop-types";
 
 
 export default function PieChart(props) {
@@ -17,4 +18,21 @@ export default function PieChart(props) {
         </div>
     )
 }
-PieChart.propTypes = chartPropsTemplate
+PieChart.propTypes = {
+
+    value: PropTypes.shape({
+        label: PropTypes.string,
+        field: PropTypes.string
+    }),
+    axis: PropTypes.shape({
+        label: PropTypes.string,
+        field: PropTypes.string
+    }),
+
+    data: PropTypes.arrayOf(PropTypes.object),
+
+    title: PropTypes.string,
+
+    variant: PropTypes.oneOf(['pie', 'donut']),
+    donutRatio: PropTypes.number
+}

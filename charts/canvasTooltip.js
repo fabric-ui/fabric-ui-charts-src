@@ -82,7 +82,6 @@ export default function canvasTooltip(point, color, event, placement, draw) {
             tooltipX = x + width / 2 - tooltipWidth / 2
             break
     }
-    console.log(width, x, tooltipWidth, tooltipHeight)
 
     this.roundRect(tooltipX, tooltipY, tooltipWidth, tooltipHeight, 5).fill()
     if (align === 'end' || overflownY)

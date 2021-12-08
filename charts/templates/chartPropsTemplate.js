@@ -20,5 +20,7 @@ export default {
         field: PropTypes.string
     })),
 
-    color: PropTypes.string
+    color: PropTypes.string,
+    variant: PropTypes.oneOf(['pie', 'donut']),
+    donutRatio: PropTypes.number
 }

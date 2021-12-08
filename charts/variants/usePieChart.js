@@ -1,13 +1,8 @@
 import useChart from "../hooks/useChart";
-import React, {useEffect, useState} from "react";
-
-import onMouseMove from "./onMouseMove";
-
-import chartPropsTemplate from "../templates/chartPropsTemplate";
-import hexToRgba from "../utils/hexToRgba";
+import React, {useEffect, useMemo} from "react";
 import useAsyncMemo from "../utils/useAsyncMemo";
 import onHoverPieSlice from "./onHoverPieSlice";
-import animatedSlices from "../utils/animatedSlices";
+import PropTypes from "prop-types";
 
 
 export default function usePieChart(props) {
@@ -22,6 +17,10 @@ export default function usePieChart(props) {
         data: props.data,
         valueKey: props.value.field,
     })
+
+    const ratio = useMemo(() => {
+        return (props.donutRatio ? props.donutRatio : .7)
+    }, [props.donutRatio])
 
     const placement = useAsyncMemo(() => {
         if (width !== undefined && height !== undefined) {
@@ -49,7 +48,9 @@ export default function usePieChart(props) {
             },
             points: points,
             drawChart: (onHover) => drawChart(true, onHover),
-            placement: placement
+            placement: placement,
+            variant: props.variant,
+            ratio: ratio
         })
     }
     const handleMouseOut = () => {
@@ -65,10 +66,10 @@ export default function usePieChart(props) {
         filteredData.forEach((point, index) => {
                 let tooltipY, tooltipX, endAngle = (point[props.value.field] / total) * (Math.PI * 2) + startAngle
                 const color = points.length === 0 ? randomColor() : points[index].color
+                const r = ((placement.radius + (props.variant === 'donut' ? placement.radius * ratio : 0)) / 2)
 
-
-                tooltipY = Math.sin((startAngle + endAngle) / 2) * (placement.radius / 2) * 1.1
-                tooltipX = Math.cos((startAngle + endAngle) / 2) * (placement.radius / 2) * 1.1
+                tooltipY = Math.sin((startAngle + endAngle) / 2) * r * 1.1
+                tooltipX = Math.cos((startAngle + endAngle) / 2) * r * 1.1
 
                 const newPoint = {
                     value: point[props.value.field],
@@ -94,9 +95,9 @@ export default function usePieChart(props) {
                     () => {
 
                         let deltaX, deltaY, theta, textAngle
-                        const message = `${newPoint.axis}: ${(newPoint.value * 100 / total).toFixed(2)}%`
+                        const message = `${(newPoint.value * 100 / total).toFixed(2)}%`
                         context.font = '600 14px Roboto'
-                        context.fillStyle = newPoint.color
+                        context.fillStyle = theme.themes.fabric_color_quaternary
                         context.lineWidth = 2
 
                         theta = (newPoint.startAngle + newPoint.endAngle) / 2
@@ -106,8 +107,13 @@ export default function usePieChart(props) {
                         context.fillText(message, (deltaX + placement.cx), deltaY + placement.cy)
                         context.closePath()
 
-                        if (index === filteredData.length - 1 && points.length === 0)
-                            setPoints(newPoints)
+                        if (index === filteredData.length - 1) {
+                            if (points.length === 0)
+                                setPoints(newPoints)
+                            if (props.variant === 'donut')
+                                context.animatedArc(placement.cx, placement.cy, placement.radius * ratio, 0, Math.PI * 2, context.donutAnimationEnded ? 0 : 500, () => context.donutAnimationEnded = true)
+
+                        }
 
                         context.animationEnded = true
                     })
@@ -121,7 +127,7 @@ export default function usePieChart(props) {
 
     useEffect(() => {
 
-        if (context && !isNaN(width) && width !== undefined && placement !== undefined) {
+        if (context && width !== undefined && placement !== undefined) {
             context.defaultFont()
             drawChart(true, undefined)
 
@@ -142,4 +148,21 @@ export default function usePieChart(props) {
 }
 
 
-usePieChart.propTypes = chartPropsTemplate
+usePieChart.propTypes = {
+
+    value: PropTypes.shape({
+        label: PropTypes.string,
+        field: PropTypes.string
+    }),
+    axis: PropTypes.shape({
+        label: PropTypes.string,
+        field: PropTypes.string
+    }),
+
+    data: PropTypes.arrayOf(PropTypes.object),
+
+    title: PropTypes.string,
+
+    variant: PropTypes.oneOf(['pie', 'donut']),
+    donutRatio: PropTypes.number
+}

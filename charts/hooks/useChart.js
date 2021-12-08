@@ -9,6 +9,7 @@ import drawGrid from "../utils/drawGrid";
 import canvasTooltip from "../canvasTooltip";
 
 import animateSlice from "../utils/animatedSlices";
+import animatedArc from "../utils/animatedArc";
 
 const randomColor = () => {
     let n = (Math.random() * 0xfffff * 1000000).toString(16);
@@ -45,6 +46,7 @@ export default function useChart(props) {
         CanvasRenderingContext2D.prototype.grid = drawGrid
         CanvasRenderingContext2D.prototype.tooltip = canvasTooltip
         CanvasRenderingContext2D.prototype.animateSlice = animateSlice
+        CanvasRenderingContext2D.prototype.animatedArc = animatedArc
 
         CanvasRenderingContext2D.prototype.clearArc = function(cx, cy, radius, startAngle, endAngle){
             this.globalCompositeOperation = 'destination-out'

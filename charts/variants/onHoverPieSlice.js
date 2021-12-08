@@ -1,12 +1,13 @@
 import PropTypes from "prop-types";
-import onMouseMove from "./onMouseMove";
 import getAngle from "../utils/getAngle";
 
 export default function onHoverPieSlice(props) {
     let drawn = undefined
-    const isInside = ((props.event.x - props.placement.cx) ** 2 + (props.event.y - props.placement.cy) ** 2) < props.placement.radius ** 2
-
-    if (isInside) {
+    const event = (props.event.x - props.placement.cx) ** 2 + (props.event.y - props.placement.cy) ** 2
+    const isInside = (event < props.placement.radius ** 2)
+    const ratioRadius = event > (props.ratio * props.placement.radius) ** 2
+    console.log(ratioRadius)
+    if (isInside && ((props.variant === 'donut' && ratioRadius) || props.variant === 'pie')) {
         props.points.forEach((p, i) => {
             let pointAngle = getAngle({x: props.event.x - props.placement.cx, y: props.event.y - props.placement.cy})
 
@@ -63,6 +64,8 @@ onHoverPieSlice.propTypes = {
     ctx: PropTypes.object.isRequired,
     drawChart: PropTypes.func.isRequired,
 
-    placement: PropTypes.object
+    placement: PropTypes.object,
+    variant: PropTypes.oneOf(['pie', 'donut']),
+    ratio: PropTypes.number
 
 }
