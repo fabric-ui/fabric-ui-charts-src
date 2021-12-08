@@ -9,9 +9,6 @@ export default function useDimensions(parent) {
         setWidth(parent.offsetWidth - (parent.firstChild.offsetLeft - parent.offsetLeft) *2)
         const marginBottom = window.getComputedStyle(parent.firstChild, null).getPropertyValue('margin-bottom').replace('px', '')
         setHeight(parent.offsetHeight - parent.firstChild.offsetHeight - parseInt(marginBottom))
-
-
-        console.log()
     }
 
     useEffect(() => {

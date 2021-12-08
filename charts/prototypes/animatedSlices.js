@@ -1,5 +1,5 @@
-import hexToRgba from "./hexToRgba";
-import getEase from "./getEase";
+import hexToRgba from "../utils/hexToRgba";
+import getEase from "../utils/getEase";
 
 
 

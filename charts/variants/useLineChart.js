@@ -2,7 +2,7 @@ import useChart from "../hooks/useChart";
 import React, {useEffect} from "react";
 
 import chartPropsTemplate from "../templates/chartPropsTemplate";
-import onMouseMove from "./onMouseMove";
+import onHover from "../events/onHover";
 import PropTypes from "prop-types";
 
 
@@ -51,9 +51,8 @@ export default function useLineChart(props) {
         yBefore = y
     }
 
-    const drawChart = (clear, onHover) => {
-        if (clear)
-            clearCanvas()
+    const drawChart = (onHover) => {
+        context.clearAll()
         context.grid({
             variant: 'line',
             ctx: context,
@@ -79,7 +78,7 @@ export default function useLineChart(props) {
         points, setPoints, parentRef,
         theme, biggest, ref, iterations,
         labelSpacing, context,
-        clearCanvas, width, height
+        width, height
     } = useChart({
         axisKey: props.axis.field,
         data: props.data,
@@ -89,7 +88,7 @@ export default function useLineChart(props) {
     const handleMouseMove = (event) => {
         const bBox = ref.current?.getBoundingClientRect()
 
-        onMouseMove({
+        onHover({
             variant: 'line',
             ctx: context,
             event: {
@@ -99,14 +98,14 @@ export default function useLineChart(props) {
                 height: bBox.height
             },
             points: points,
-            drawChart: (onHover) => drawChart(true, onHover),
+            drawChart: (onHover) => drawChart(onHover),
         })
     }
 
     useEffect(() => {
         if (context) {
             context.defaultFont()
-            drawChart(context, true)
+            drawChart()
         }
         ref.current?.addEventListener('mousemove', handleMouseMove)
         return () => {

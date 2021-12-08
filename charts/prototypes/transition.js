@@ -1,4 +1,4 @@
-import hexToRgba from "./hexToRgba";
+import hexToRgba from "../utils/hexToRgba";
 
 export default function transition(backwards, color, timestamp, drawContent, finalOpacity=1){
     let start, previousTimeStamp

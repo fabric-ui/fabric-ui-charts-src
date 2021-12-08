@@ -1,11 +1,11 @@
 import useChart from "../hooks/useChart";
 import React, {useEffect, useState} from "react";
 
-import onMouseMove from "./onMouseMove";
+import onHover from "../events/onHover";
 
 import chartPropsTemplate from "../templates/chartPropsTemplate";
 import hexToRgba from "../utils/hexToRgba";
-import useAsyncMemo from "../utils/useAsyncMemo";
+import useAsyncMemo from "../hooks/useAsyncMemo";
 
 
 export default function useVerticalChart(props) {
@@ -14,7 +14,7 @@ export default function useVerticalChart(props) {
         points, setPoints, parentRef,
         theme, biggest, ref, iterations,
         labelSpacing, context,
-        clearCanvas, width, height
+        width, height
     } = useChart({
         axisKey: props.axis.field,
         data: props.data,
@@ -28,7 +28,7 @@ export default function useVerticalChart(props) {
 
     const handleMouseMove = (event) => {
         const bBox = ref.current?.getBoundingClientRect()
-        onMouseMove({
+        onHover({
             labelSpacing: labelSpacing,
             ctx: context,
             event: {
@@ -38,13 +38,15 @@ export default function useVerticalChart(props) {
                 height: bBox.height
             },
             points: points,
-            drawChart: (onHover) => drawChart(true, onHover),
+            drawChart: (onHover) => drawChart( onHover),
             variant: 'vertical'
         })
     }
+
     const handleMouseOut = () => {
-        drawChart(true)
+        drawChart()
     }
+
     const dimensions = useAsyncMemo(() => {
         const length = props.data.length
         const o = ref.current ? (ref.current.width * 2) / (length * length) : undefined
@@ -53,10 +55,7 @@ export default function useVerticalChart(props) {
         return {offset: o, barWidth: w}
     }, [width, labelSpacing, ref.current])
 
-    const drawChart = (clear, onHover) => {
-        if (clear)
-            clearCanvas()
-
+    const drawGrid = () => {
         context.grid({
             variant: 'vertical',
             iterations: iterations,
@@ -68,6 +67,11 @@ export default function useVerticalChart(props) {
             width: dimensions.barWidth,
             offset: dimensions.offset
         })
+    }
+
+    const drawChart = (onHover=undefined) => {
+        context.clearAll()
+        drawGrid()
 
         const color = props.color ? props.color : '#0095ff'
         context.fillStyle = hexToRgba(color, .65)
@@ -81,17 +85,8 @@ export default function useVerticalChart(props) {
             context.animatedRect(
                 points,
                 () => {
-                    clearCanvas()
-                    context.grid({
-                        iterations: iterations,
-                        labelPadding: labelSpacing,
-                        data: props.data,
-                        element: ref.current,
-                        color: theme.themes.fabric_color_quaternary,
-                        axisKey: props.axis.field,
-                        width: dimensions.barWidth,
-                        offset: dimensions.offset
-                    })
+                    context.clearAll()
+                    drawGrid()
                 },
                 dimensions.barWidth,
                 0,
@@ -101,13 +96,14 @@ export default function useVerticalChart(props) {
                     context.fillStyle = hexToRgba(props.color ? props.color : '#0095ff', .65)
                 }
             )
-        } else
+        } else {
+            context.clearAll()
+            drawGrid()
             points.forEach((p, i) => {
-
                 context.fillStyle = onHover === i ? hexToRgba(color, .9) : hexToRgba(color, .65)
-
                 context.fillRect(p.x, p.y, p.width, p.height)
             })
+        }
     }
 
     const getPoints = ({point, position}) => {
@@ -134,7 +130,7 @@ export default function useVerticalChart(props) {
     useEffect(() => {
         if (context && dimensions.barWidth !== undefined) {
             context.defaultFont()
-            drawChart(true, undefined)
+            drawChart()
         }
 
         ref.current?.addEventListener('mousemove', handleMouseMove)

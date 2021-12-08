@@ -2,14 +2,14 @@ import React, {useContext, useEffect, useMemo, useRef, useState} from "react";
 import PropTypes from "prop-types";
 import useDimensions from "./useDimensions";
 import ThemeContext from "../../../core/misc/context/ThemeContext";
-import animatedRects from "../utils/animatedRects";
-import roundRect from "../utils/roundRect";
-import transition from "../utils/transition";
-import drawGrid from "../utils/drawGrid";
+import animatedRects from "../prototypes/animatedRects";
+import roundRect from "../prototypes/roundRect";
+import transition from "../prototypes/transition";
+import drawGrid from "../prototypes/drawGrid";
 import canvasTooltip from "../canvasTooltip";
 
-import animateSlice from "../utils/animatedSlices";
-import animatedArc from "../utils/animatedArc";
+import animateSlice from "../prototypes/animatedSlices";
+import animatedArc from "../prototypes/animatedArc";
 
 const randomColor = () => {
     let n = (Math.random() * 0xfffff * 1000000).toString(16);
@@ -47,8 +47,10 @@ export default function useChart(props) {
         CanvasRenderingContext2D.prototype.tooltip = canvasTooltip
         CanvasRenderingContext2D.prototype.animateSlice = animateSlice
         CanvasRenderingContext2D.prototype.animatedArc = animatedArc
-
-        CanvasRenderingContext2D.prototype.clearArc = function(cx, cy, radius, startAngle, endAngle){
+        CanvasRenderingContext2D.prototype.clearAll = function () {
+            this.clearRect(0, 0, this.canvas.width, this.canvas.height)
+        }
+        CanvasRenderingContext2D.prototype.clearArc = function (cx, cy, radius, startAngle, endAngle) {
             this.globalCompositeOperation = 'destination-out'
 
             this.beginPath()

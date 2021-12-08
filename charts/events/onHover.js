@@ -1,10 +1,9 @@
 import PropTypes from "prop-types";
 
-export default function onMouseMove(props) {
+export default function onHover(props) {
     let drawn = undefined
 
     props.points.forEach((p, i) => {
-
         if (props.event.x >= p.x && props.event.x <= (p.x + Math.abs(p.width)) && props.event.y >= p.y && props.event.y <= (p.y + Math.abs(p.height))) {
             const placement = {
                 align: props.variant === 'vertical' ? 'start' : 'middle',
@@ -26,27 +25,28 @@ export default function onMouseMove(props) {
                     '#000',
                     250,
                     (color) => {
-                    props.ctx.tooltip(
-                        p,
-                        color,
-                        props.event,
-                        placement,
-                        () => props.drawChart(i)
-                    )
-                }, .75)
+                        props.ctx.tooltip(
+                            p,
+                            color,
+                            props.event,
+                            placement,
+                            () => props.drawChart(i)
+                        )
+                    }, .75)
 
             CanvasRenderingContext2D.prototype.lastOnHover = i
         } else if (drawn === undefined)
             drawn = false
     })
 
+    console.log(drawn)
     if (drawn === false) {
         CanvasRenderingContext2D.prototype.lastOnHover = undefined
         props.drawChart()
     }
 }
 
-onMouseMove.propTypes = {
+onHover.propTypes = {
     variant: PropTypes.oneOf(['vertical', 'horizontal', 'line']),
     event: PropTypes.object.isRequired,
     points: PropTypes.array.isRequired,

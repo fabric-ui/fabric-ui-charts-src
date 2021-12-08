@@ -7,7 +7,7 @@ export default function onHoverPieSlice(props) {
     const isInside = (event < props.placement.radius ** 2)
     const ratioRadius = event > (props.ratio * props.placement.radius) ** 2
     console.log(ratioRadius)
-    if (isInside && ((props.variant === 'donut' && ratioRadius) || props.variant === 'pie')) {
+    if (isInside && ((props.variant === 'donut' && ratioRadius) || true)) {
         props.points.forEach((p, i) => {
             let pointAngle = getAngle({x: props.event.x - props.placement.cx, y: props.event.y - props.placement.cy})
 

@@ -1,7 +1,7 @@
 import useChart from "../hooks/useChart";
 import React, {useEffect, useMemo} from "react";
-import useAsyncMemo from "../utils/useAsyncMemo";
-import onHoverPieSlice from "./onHoverPieSlice";
+import useAsyncMemo from "../hooks/useAsyncMemo";
+import onHoverPieSlice from "../events/onHoverPieSlice";
 import PropTypes from "prop-types";
 
 
@@ -11,7 +11,7 @@ export default function usePieChart(props) {
         points, setPoints, parentRef,
         theme, ref, context,
         labelSpacing, total,
-        clearCanvas, width, height, randomColor
+        width, height, randomColor
     } = useChart({
         axisKey: props.axis.field,
         data: props.data,
@@ -47,19 +47,18 @@ export default function usePieChart(props) {
                 height: bBox.height
             },
             points: points,
-            drawChart: (onHover) => drawChart(true, onHover),
+            drawChart: (onHover) => drawChart(onHover),
             placement: placement,
             variant: props.variant,
             ratio: ratio
         })
     }
     const handleMouseOut = () => {
-        drawChart(true)
+        drawChart()
     }
 
-    const drawChart = (clear, onHover) => {
-        if (clear)
-            clearCanvas()
+    const drawChart = (onHover=undefined) => {
+        context.clearAll()
         const filteredData = props.data.filter(e => e[props.value.field] !== 0)
         let startAngle = 0, newPoints = []
 
@@ -120,8 +119,6 @@ export default function usePieChart(props) {
                 startAngle = endAngle
             }
         )
-
-
     }
 
 
@@ -129,7 +126,7 @@ export default function usePieChart(props) {
 
         if (context && width !== undefined && placement !== undefined) {
             context.defaultFont()
-            drawChart(true, undefined)
+            drawChart()
 
             if (context.animationEnded) {
                 ref.current?.addEventListener('mousemove', handleMouseMove)
@@ -161,8 +158,7 @@ usePieChart.propTypes = {
 
     data: PropTypes.arrayOf(PropTypes.object),
 
-    title: PropTypes.string,
-
+    donutRatio: PropTypes.number,
     variant: PropTypes.oneOf(['pie', 'donut']),
-    donutRatio: PropTypes.number
+
 }

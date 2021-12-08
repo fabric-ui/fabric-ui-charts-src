@@ -1,4 +1,4 @@
-import getEase from "./getEase";
+import getEase from "../utils/getEase";
 
 export default function animatedArc(cx, cy, radius, startAngle, endAngle, timestamp, onEnded) {
     let start, previousTimeStamp

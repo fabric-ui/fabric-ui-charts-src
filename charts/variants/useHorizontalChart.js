@@ -1,10 +1,10 @@
 import useChart from "../hooks/useChart";
 import React, {useEffect, useState} from "react";
 
-import onMouseMove from "./onMouseMove";
+import onHover from "../events/onHover";
 import chartPropsTemplate from "../templates/chartPropsTemplate";
 import hexToRgba from "../utils/hexToRgba";
-import useAsyncMemo from "../utils/useAsyncMemo";
+import useAsyncMemo from "../hooks/useAsyncMemo";
 
 
 export default function useHorizontalChart(props) {
@@ -12,7 +12,7 @@ export default function useHorizontalChart(props) {
         points, setPoints, parentRef,
         theme, biggest, ref, iterations,
         labelSpacing, context,
-        clearCanvas, width, height
+         width, height
     } = useChart({
         axisKey: props.axis.field,
         data: props.data,
@@ -22,7 +22,7 @@ export default function useHorizontalChart(props) {
 
     const handleMouseMove = (event) => {
         const bBox = ref.current?.getBoundingClientRect()
-        onMouseMove({
+        onHover({
             ctx: context,
             event: {
                 x: event.clientX - bBox.left,
@@ -31,13 +31,12 @@ export default function useHorizontalChart(props) {
                 height: bBox.height
             },
             points: points,
-            drawChart: (onHover) =>
-                drawChart(true, onHover),
+            drawChart: (onHover) => drawChart(onHover),
             variant: 'horizontal'
         })
     }
     const handleMouseOut = () => {
-        drawChart(true)
+        drawChart()
     }
     const dimensions = useAsyncMemo(() => {
         const length = props.data.length
@@ -52,10 +51,7 @@ export default function useHorizontalChart(props) {
     let [firstRender, setFirstRender] = useState(true)
     let calledFirstRender = false
 
-
-    const drawChart = (clear, onHover) => {
-        if (clear)
-            clearCanvas()
+    const drawGrid = () => {
 
         context.grid({
             variant: 'horizontal',
@@ -68,7 +64,11 @@ export default function useHorizontalChart(props) {
             height: dimensions.barHeight,
             offset: dimensions.offset
         })
+    }
+    const drawChart = (onHover = undefined) => {
 
+        context.clearAll()
+        drawGrid()
         const color = props.color ? props.color : '#0095ff'
         context.fillStyle = hexToRgba(color, .65)
 
@@ -77,18 +77,8 @@ export default function useHorizontalChart(props) {
             context.animatedRect(
                 points,
                 () => {
-                    clearCanvas()
-                    context.grid({
-                            iterations: iterations,
-                            labelPadding: labelSpacing,
-                            data: props.data,
-                            element: ref.current,
-                            color: theme.themes.fabric_color_quaternary,
-                            axisKey: props.axis.field,
-                            height: dimensions.barHeight,
-                            offset: dimensions.offset
-                        }
-                    )
+                    context.clearAll()
+                    drawGrid()
                 },
                 0,
                 dimensions.barHeight,
@@ -99,11 +89,13 @@ export default function useHorizontalChart(props) {
                 }
             )
         } else {
-            console.log('Drawing', points)
+            context.clearAll()
+            drawGrid()
             points.forEach((p, i) => {
                 context.fillStyle = onHover === i ? hexToRgba(color, .9) : hexToRgba(color, .65)
                 context.fillRect(p.x, p.y, p.width, p.height)
             })
+
         }
     }
 
@@ -131,7 +123,7 @@ export default function useHorizontalChart(props) {
 
         if (context && dimensions.barHeight !== undefined) {
             context.defaultFont()
-            drawChart(true, undefined)
+            drawChart()
         }
 
         ref.current?.addEventListener('mousemove', handleMouseMove)
