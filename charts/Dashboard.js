@@ -12,7 +12,7 @@ export default function Dashboard(props) {
             if (v.props.page === a[i - 1]?.props.page)
                 r[r.length - 1].push(v)
             else
-                r.push(v.props.page === a[i + 1]?.props.page ? [v] : v)
+                r.push([v])
 
             return r
         }, [])
@@ -24,7 +24,7 @@ export default function Dashboard(props) {
         <DashboardContext.Provider value={props.data}>
             <div className={styles.pageWrapper} style={props.styles}>
                 <div className={styles.page}>
-                    {pages[openPage]?.map((visual, index) => (
+                    {pages[openPage].map((visual, index) => (
                         <React.Fragment key={`${index}-visual-${openPage}`}>
                             {visual}
                         </React.Fragment>

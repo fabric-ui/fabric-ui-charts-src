@@ -10,6 +10,7 @@ import canvasTooltip from "../canvasTooltip";
 
 import animateSlice from "../prototypes/animatedSlices";
 import animatedArc from "../prototypes/animatedArc";
+import polygon from "../prototypes/polygon";
 
 const randomColor = () => {
     let n = (Math.random() * 0xfffff * 1000000).toString(16);
@@ -47,6 +48,7 @@ export default function useChart(props) {
         CanvasRenderingContext2D.prototype.tooltip = canvasTooltip
         CanvasRenderingContext2D.prototype.animateSlice = animateSlice
         CanvasRenderingContext2D.prototype.animatedArc = animatedArc
+        CanvasRenderingContext2D.prototype.polygon = polygon
         CanvasRenderingContext2D.prototype.clearAll = function () {
             this.clearRect(0, 0, this.canvas.width, this.canvas.height)
         }

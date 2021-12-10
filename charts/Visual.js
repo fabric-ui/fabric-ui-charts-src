@@ -6,6 +6,7 @@ import useLineChart from "./variants/useLineChart";
 import useVerticalChart from "./variants/useVerticalChart";
 import useHorizontalChart from "./variants/useHorizontalChart";
 import usePieChart from "./variants/usePieChart";
+import useRadarChart from "./variants/useRadarChart";
 
 function getHook(variant, params) {
     switch (variant) {
@@ -18,6 +19,8 @@ function getHook(variant, params) {
         case 'donut':
         case  'pie':
             return usePieChart(params)
+        case 'radar':
+            return useRadarChart(params)
         default:
             return {}
     }
@@ -56,5 +59,5 @@ Visual.propTypes = {
     styles: PropTypes.shape({
         donutRatio: PropTypes.number
     }),
-    variant: PropTypes.oneOf(['line', 'vertical-bar', 'horizontal-bar', 'pie', 'donut'])
+    variant: PropTypes.oneOf(['radar', 'line', 'vertical-bar', 'horizontal-bar', 'pie', 'donut'])
 }
