@@ -5,12 +5,13 @@ import ThemeContext from "../../../core/misc/context/ThemeContext";
 import animatedRects from "../prototypes/animatedRects";
 import roundRect from "../prototypes/roundRect";
 import transition from "../prototypes/transition";
-import drawGrid from "../prototypes/drawGrid";
+import grid from "../prototypes/grid";
 import canvasTooltip from "../canvasTooltip";
 
 import animateSlice from "../prototypes/animatedSlices";
 import animatedArc from "../prototypes/animatedArc";
 import polygon from "../prototypes/polygon";
+import animatedPolygon from "../prototypes/animatedPolygon";
 
 const randomColor = () => {
     let n = (Math.random() * 0xfffff * 1000000).toString(16);
@@ -44,11 +45,12 @@ export default function useChart(props) {
         }
         CanvasRenderingContext2D.prototype.animatedRect = animatedRects
         CanvasRenderingContext2D.prototype.opacityTransition = transition
-        CanvasRenderingContext2D.prototype.grid = drawGrid
+        CanvasRenderingContext2D.prototype.grid = grid
         CanvasRenderingContext2D.prototype.tooltip = canvasTooltip
         CanvasRenderingContext2D.prototype.animateSlice = animateSlice
         CanvasRenderingContext2D.prototype.animatedArc = animatedArc
         CanvasRenderingContext2D.prototype.polygon = polygon
+        CanvasRenderingContext2D.prototype.animatedPolygon =animatedPolygon
         CanvasRenderingContext2D.prototype.clearAll = function () {
             this.clearRect(0, 0, this.canvas.width, this.canvas.height)
         }

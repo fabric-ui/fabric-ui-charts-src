@@ -1,33 +1,29 @@
-export default function polygon(sides, cx, cy, radius) {
-    // const vector = [cx, cy]
-    // const theta = ((sides - 2) / sides) * Math.PI
-    //
-    // // [[Math.cos(theta), Math.sin(theta)],[-Math.sin(theta), Math.cos(theta)]]
-    //
-    //
-    // let startAngle = 0
-    // for (let i = 0; i < sides; i++) {
-    //     const rotationMatrix = [cx * Math.cos(theta) - cy * Math.sin(theta), cx * Math.sin(theta) + cy * Math.cos(theta)]
-    //
-    //     this.strokeStyle = 'red'
-    //     this.beginPath()
-    //     this.lineTo(rotationMatrix[0], rotationMatrix[1])
-    //     this.stroke()
-    //     this.closePath()
-    // }
+export default function polygon(strokeStyle, sides, cx, cy, radius) {
+    let placements = []
 
-    let step  = 2 * Math.PI / sides, shift = (sides% 2 === 0 ? 2 : .5)*Math.PI/sides
+    let step = 2 * Math.PI / sides, shift = (sides % 2 ? -1 : 1) * (sides / 2) * Math.PI / sides
+
     this.beginPath();
 
-    for (let i = 0; i <= sides;i++) {
+    // this.moveTo(radius,0);
+
+    for (let i = 0; i <= sides; i++) {
         let currentStep = i * step + shift;
-        this.lineTo (cx + radius * Math.cos(currentStep), cy + radius * Math.sin(currentStep));
+        const {x, y} = {x: cx + radius * Math.cos(currentStep), y: cy + radius * Math.sin(currentStep)}
+        placements.push({x, y})
+        this.lineTo(x, y);
     }
 
-    this.strokeStyle = "#000000";
-    this.lineWidth = 1;
+    this.strokeStyle = strokeStyle;
     this.stroke();
     this.closePath();
 
-    console.log('HERE')
+    this.beginPath()
+    placements.forEach(p => {
+        this.moveTo(cx, cy);
+        this.lineTo(p.x, p.y);
+    })
+    this.stroke();
+    this.closePath();
+    return placements
 }

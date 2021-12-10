@@ -54,6 +54,7 @@ export default function useLineChart(props) {
     const drawChart = (onHover) => {
         context.clearAll()
         context.grid({
+            strokeStyle: theme.themes.fabric_border_secondary,
             variant: 'line',
             ctx: context,
             iterations: iterations,

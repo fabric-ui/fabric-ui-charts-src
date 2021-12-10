@@ -54,6 +54,7 @@ export default function useHorizontalChart(props) {
     const drawGrid = () => {
 
         context.grid({
+            strokeStyle: theme.themes.fabric_border_secondary,
             variant: 'horizontal',
             iterations: iterations,
             labelPadding: labelSpacing,

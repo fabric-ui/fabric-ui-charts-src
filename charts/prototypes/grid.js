@@ -1,20 +1,20 @@
 import PropTypes from "prop-types";
 
-export default function drawGrid(props) {
-    const {
-        iterations,
-        labelPadding,
-        data,
-        axisKey,
-        element,
-        color,
-        width,
-        offset,
-        variant,
-        height
-    } = props
+export default function grid({
+    strokeStyle,
+                                 iterations,
+                                 labelPadding,
+                                 data,
+                                 axisKey,
+                                 element,
+                                 color,
+                                 width,
+                                 offset,
+                                 variant,
+                                 height
+                             }) {
 
-    this.strokeStyle = '#e0e0e0'
+    this.strokeStyle = strokeStyle
 
     this.beginPath();
     this.moveTo(labelPadding * 1.35, 0);
@@ -34,6 +34,7 @@ export default function drawGrid(props) {
 
                 this.fillStyle = color
                 this.fillText(d[axisKey], x - (d[axisKey].length * 8) / 2, element.height - 16);
+                this.closePath()
                 break
             }
             case 'horizontal': {
@@ -45,7 +46,7 @@ export default function drawGrid(props) {
 
                 this.fillStyle = color
                 this.fillText(d[axisKey], 0, y - height / 2 + 2);
-
+                this.closePath()
                 break
             }
             case 'line': {
@@ -60,6 +61,7 @@ export default function drawGrid(props) {
 
                 this.fillStyle = color
                 this.fillText(d[axisKey], x - (d[axisKey].length * 8) / 2, element.height - 16);
+                this.closePath()
                 break
             }
             default:
@@ -82,7 +84,7 @@ export default function drawGrid(props) {
 
                 this.fillStyle = color
                 this.fillText(value, x - value.toString().length * 4, element.height - 12);
-
+                this.closePath()
                 break
             }
 
@@ -97,21 +99,9 @@ export default function drawGrid(props) {
                 this.fillStyle = color
 
                 this.fillText(i, 0, (y + 4));
+                this.closePath()
                 break
             }
         }
     })
-}
-
-drawGrid.propTypes = {
-    height: PropTypes.number,
-    iterations: PropTypes.array,
-    labelPadding: PropTypes.number,
-    data: PropTypes.array,
-    axisKey: PropTypes.string,
-    element: PropTypes.element,
-    color: PropTypes.string,
-    width: PropTypes.number,
-    offset: PropTypes.number,
-    variant: PropTypes.oneOf(['vertical', 'horizontal', 'line']),
 }

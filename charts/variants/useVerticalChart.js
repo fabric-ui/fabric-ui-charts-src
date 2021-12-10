@@ -57,6 +57,7 @@ export default function useVerticalChart(props) {
 
     const drawGrid = () => {
         context.grid({
+            strokeStyle: theme.themes.fabric_border_secondary,
             variant: 'vertical',
             iterations: iterations,
             labelPadding: labelSpacing,

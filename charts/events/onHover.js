@@ -39,7 +39,7 @@ export default function onHover(props) {
             drawn = false
     })
 
-    console.log(drawn)
+
     if (drawn === false) {
         CanvasRenderingContext2D.prototype.lastOnHover = undefined
         props.drawChart()
