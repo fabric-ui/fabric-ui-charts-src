@@ -1,7 +1,5 @@
 import useChart from "../hooks/useChart";
 import React, {useEffect} from "react";
-
-import chartPropsTemplate from "../templates/chartPropsTemplate";
 import onHover from "../events/onHover";
 import PropTypes from "prop-types";
 
@@ -119,4 +117,10 @@ export default function useLineChart(props) {
 }
 
 
-useLineChart.propTypes = chartPropsTemplate
+useLineChart.propTypes = {
+    data: PropTypes.arrayOf(PropTypes.object),
+    variant: PropTypes.string,
+    axis: PropTypes.object,
+    value: PropTypes.object,
+    styles: PropTypes.object
+}

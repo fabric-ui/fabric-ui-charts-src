@@ -37,7 +37,7 @@ function drawTriangle(x, y, width, height, placement, context) {
 
 }
 
-export default function canvasTooltip(point, color, event, placement, draw) {
+export default function tooltip(point, color, event, placement, draw) {
     const {x, y, width, height, axis, axisLabel, value, valueLabel} = point
     const {align, justify} = placement
 

@@ -2,10 +2,9 @@ import useChart from "../hooks/useChart";
 import React, {useEffect, useState} from "react";
 
 import onHover from "../events/onHover";
-
-import chartPropsTemplate from "../templates/chartPropsTemplate";
 import hexToRgba from "../utils/hexToRgba";
 import useAsyncMemo from "../hooks/useAsyncMemo";
+import PropTypes from "prop-types";
 
 
 export default function useVerticalChart(props) {
@@ -147,4 +146,10 @@ export default function useVerticalChart(props) {
 }
 
 
-useVerticalChart.propTypes = chartPropsTemplate
+useVerticalChart.propTypes = {
+    data: PropTypes.arrayOf(PropTypes.object),
+    variant: PropTypes.string,
+    axis: PropTypes.object,
+    value: PropTypes.object,
+    styles: PropTypes.object
+}

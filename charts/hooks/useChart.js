@@ -6,30 +6,48 @@ import animatedRects from "../prototypes/animatedRects";
 import roundRect from "../prototypes/roundRect";
 import transition from "../prototypes/transition";
 import grid from "../prototypes/grid";
-import canvasTooltip from "../canvasTooltip";
+import tooltip from "../prototypes/tooltip";
 
 import animateSlice from "../prototypes/animatedSlices";
 import animatedArc from "../prototypes/animatedArc";
 import polygon from "../prototypes/polygon";
 import animatedPolygon from "../prototypes/animatedPolygon";
 
-const randomColor = () => {
-    let n = (Math.random() * 0xfffff * 1000000).toString(16);
-    return '#' + n.slice(0, 6);
-}
-
 const padding = 32
+const getIterationCandidate = (data, valueKey, variant, height, width) => {
+    let q, b = Math.max(...data.map(d => d[valueKey])), nb, k, iterations = []
 
+    if (variant === 'horizontal')
+        q = Math.round(width / 350)
+    else
+        q = Math.round(height / 100)
+
+    k = Math.ceil(b / q)
+    k = Math.ceil(k / q) * q
+    nb = k * q
+
+    let currentValue = nb
+    for (let i = 0; i <= q; i++) {
+        iterations.push(currentValue)
+        currentValue -= k
+    }
+    console.log(nb, b, iterations)
+    return {biggest: (nb), iterations}
+}
 export default function useChart(props) {
     const theme = useContext(ThemeContext)
     const parentRef = useRef()
     const ref = useRef()
     const [points, setPoints] = useState([])
     const [context, setContext] = useState()
-    const total = useMemo(() => {
-        return props.data.reduce((total, el) => {
-            return total + el[props.valueKey]
-        }, 0)
+    const totals = useMemo(() => {
+        let res = []
+        props.values.forEach((v) => {
+            res.push(props.data.reduce((total, el) => {
+                return total + el[v.field]
+            }, 0))
+        })
+        return res
     }, [props.data])
 
 
@@ -46,11 +64,11 @@ export default function useChart(props) {
         CanvasRenderingContext2D.prototype.animatedRect = animatedRects
         CanvasRenderingContext2D.prototype.opacityTransition = transition
         CanvasRenderingContext2D.prototype.grid = grid
-        CanvasRenderingContext2D.prototype.tooltip = canvasTooltip
+        CanvasRenderingContext2D.prototype.tooltip = tooltip
         CanvasRenderingContext2D.prototype.animateSlice = animateSlice
         CanvasRenderingContext2D.prototype.animatedArc = animatedArc
         CanvasRenderingContext2D.prototype.polygon = polygon
-        CanvasRenderingContext2D.prototype.animatedPolygon =animatedPolygon
+        CanvasRenderingContext2D.prototype.animatedPolygon = animatedPolygon
         CanvasRenderingContext2D.prototype.clearAll = function () {
             this.clearRect(0, 0, this.canvas.width, this.canvas.height)
         }
@@ -77,39 +95,34 @@ export default function useChart(props) {
     }, [width, height, props.data])
 
     const {biggest, iterations} = useMemo(() => {
-        let q, b = Math.max(...props.data.map(d => d[props.valueKey])), nb, k, iterations = []
+        let current = {}
+        props.values.forEach(value => {
+            const c = getIterationCandidate(props.data, value.field, props.variant, height, width)
 
-        if (props.variant === 'horizontal')
-            q = Math.round(width / 350)
-        else
-            q = Math.round(height / 100)
-
-        k = Math.ceil(b / q)
-        k = Math.ceil(k / q) * q
-        nb = k * q
-
-        let currentValue = nb
-        for (let i = 0; i <= q; i++) {
-            iterations.push(currentValue)
-            currentValue -= k
-        }
-
-        return {biggest: (nb ? nb : b), iterations}
+            if(current.biggest === undefined || c.biggest > current.biggest)
+                current = c
+        })
+        return current
     }, [props.valueKey, props.data, width, height])
 
     return {
         iterations,
         parentRef, width, height,
-        context, biggest, total,
-        randomColor, points, setPoints,
-        ref, theme, labelSpacing: padding + 3,
-        clearCanvas: () => context?.clearRect(0, 0, ref.current?.width, ref.current?.height)
+        context, biggest, totals,
+        points, setPoints,
+        ref, theme, labelSpacing: padding + 3
     }
 }
 
 useChart.propTypes = {
     data: PropTypes.arrayOf(PropTypes.object).isRequired,
-    valueKey: PropTypes.string.isRequired,
+    values:PropTypes.arrayOf(
+        PropTypes.shape({
+            label: PropTypes.string,
+            field: PropTypes.string,
+            hexColor: PropTypes.string
+        })
+    ).isRequired,
     axisKey: PropTypes.string.isRequired,
     onMouseMove: PropTypes.func.isRequired,
     variant: PropTypes.oneOf(['horizontal', 'vertical'])

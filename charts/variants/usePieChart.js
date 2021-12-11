@@ -3,6 +3,7 @@ import React, {useEffect, useMemo} from "react";
 import useAsyncMemo from "../hooks/useAsyncMemo";
 import onHoverPieSlice from "../events/onHoverPieSlice";
 import PropTypes from "prop-types";
+import randomColor from "../utils/randomColor";
 
 
 export default function usePieChart(props) {
@@ -11,7 +12,7 @@ export default function usePieChart(props) {
         points, setPoints, parentRef,
         theme, ref, context,
         labelSpacing, total,
-        width, height, randomColor
+        width, height
     } = useChart({
         axisKey: props.axis.field,
         data: props.data,
@@ -146,19 +147,9 @@ export default function usePieChart(props) {
 
 
 usePieChart.propTypes = {
-
-    value: PropTypes.shape({
-        label: PropTypes.string,
-        field: PropTypes.string
-    }),
-    axis: PropTypes.shape({
-        label: PropTypes.string,
-        field: PropTypes.string
-    }),
-
     data: PropTypes.arrayOf(PropTypes.object),
-
-    donutRatio: PropTypes.number,
-    variant: PropTypes.oneOf(['pie', 'donut']),
-
+    variant: PropTypes.string,
+    axis: PropTypes.object,
+    value: PropTypes.object,
+    styles: PropTypes.object
 }

@@ -1,4 +1,4 @@
-export default function polygon(strokeStyle, sides, cx, cy, radius) {
+export default function polygon(strokeStyle, sides, cx, cy, radius, drawLines) {
     let placements = []
 
     let step = 2 * Math.PI / sides, shift = (sides % 2 ? -1 : 1) * (sides / 2) * Math.PI / sides
@@ -18,12 +18,14 @@ export default function polygon(strokeStyle, sides, cx, cy, radius) {
     this.stroke();
     this.closePath();
 
-    this.beginPath()
-    placements.forEach(p => {
-        this.moveTo(cx, cy);
-        this.lineTo(p.x, p.y);
-    })
-    this.stroke();
-    this.closePath();
+    if(drawLines) {
+        this.beginPath()
+        placements.forEach(p => {
+            this.moveTo(cx, cy);
+            this.lineTo(p.x, p.y);
+        })
+        this.stroke();
+        this.closePath();
+    }
     return placements
 }

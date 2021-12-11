@@ -4,6 +4,7 @@ import DashboardContext from "./DashboardContext";
 import Visual from "./Visual";
 import styles from './styles/Charts.module.css'
 import Button from "../../core/inputs/button/Button";
+import useData from "./hooks/useData";
 
 export default function Dashboard(props) {
     const pages = useMemo(() => {
@@ -21,7 +22,7 @@ export default function Dashboard(props) {
     const [openPage, setOpenPage] = useState(0)
 
     return (
-        <DashboardContext.Provider value={props.data}>
+        <DashboardContext.Provider value={props.datasets}>
             <div className={styles.pageWrapper} style={props.styles}>
                 <div className={styles.page}>
                     {pages[openPage].map((visual, index) => (
@@ -48,7 +49,7 @@ export default function Dashboard(props) {
 
 Dashboard.propTypes = {
     children: PropTypes.node,
-    data: PropTypes.arrayOf(PropTypes.object).isRequired,
+    datasets: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.object)).isRequired,
     styles: PropTypes.object,
     className: PropTypes.string,
     pages: PropTypes.arrayOf(PropTypes.string)

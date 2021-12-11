@@ -2,7 +2,6 @@ import hexToRgba from "../utils/hexToRgba";
 import getEase from "../utils/getEase";
 
 
-
 export default function animateSlice(strokeStyle, slice, cx, cy, timestamp, targetRadius, isOnHover, index, onEnded) {
     let {startAngle, endAngle, color, radius} = {...slice}
     let start, previousTimeStamp, targetTimestamp = timestamp === 0 ? 0 : timestamp + index * 50
