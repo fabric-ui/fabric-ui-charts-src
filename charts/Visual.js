@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import React, {useContext, useMemo} from "react";
+import React, {useContext, useMemo, useRef} from "react";
 import DashboardContext from "./DashboardContext";
 import shared from "./styles/Charts.module.css";
 import useLineChart from "./variants/useLineChart";
@@ -9,6 +9,8 @@ import usePieChart from "./variants/usePieChart";
 import useRadarChart from "./variants/useRadarChart";
 import useData from "./hooks/useData";
 import randomColor from "./utils/randomColor";
+import useLayeredCanvas from "./hooks/useLayeredCanvas";
+import useChart from "./hooks/useChart";
 
 function getHook(variant, params) {
     switch (variant) {
@@ -24,7 +26,7 @@ function getHook(variant, params) {
         case 'radar':
             return useRadarChart(params)
         default:
-            return {}
+            return
     }
 }
 
@@ -34,7 +36,7 @@ export default function Visual(props) {
     const values = useMemo(() => {
         let res = []
         props.values.forEach(v => {
-            if(v.hexColor !== undefined)
+            if (v.hexColor !== undefined)
                 res.push(v)
             else
                 res.push({...v, hexColor: randomColor()})
@@ -42,16 +44,26 @@ export default function Visual(props) {
 
         return res
     }, [])
-    const hook = getHook(props.variant, {
+
+    const hook = useChart({
+        axisKey: props.axis.field,
+        data: data,
+        values: values,
+        layers: 3
+    })
+
+    getHook(props.variant, {
+        ...props.styles,
+        ...hook,
         data: data,
         variant: props.variant,
         axis: props.axis,
         values: values,
-        ...props.styles
+
     })
 
     return (
-        <div data-page={props.page ? `${props.page}` : '0'} ref={hook.parentRef}
+        <div data-page={props.page ? `${props.page}` : '0'}
              className={[shared.wrapper, props.className].join(' ')} style={props.styles}>
             <h1 className={shared.title}>
                 {props.title}
@@ -68,13 +80,13 @@ export default function Visual(props) {
                     </div>
                     : null}
             </h1>
-            <canvas ref={hook.ref} width={hook.width} height={hook.height}/>
+            <div className={shared.canvasMountingPoint} ref={hook.wrapperRef}/>
         </div>
     )
 }
 Visual.propTypes = {
     page: PropTypes.number.isRequired,
-    values:PropTypes.arrayOf(
+    values: PropTypes.arrayOf(
         PropTypes.shape({
             label: PropTypes.string,
             field: PropTypes.string,

@@ -1,36 +1,45 @@
 import PropTypes from "prop-types";
 
-export default function onHover(props) {
+export default function onHover({
+                                    variant,
+                                    event,
+                                    points,
+                                    ctx,
+                                    drawChart
+                                }) {
     let drawn = undefined
 
-    props.points.forEach((p, i) => {
-        if (props.event.x >= p.x && props.event.x <= (p.x + Math.abs(p.width)) && props.event.y >= p.y && props.event.y <= (p.y + Math.abs(p.height))) {
+    points.forEach((p, i) => {
+        if (event.x >= p.x && event.x <= (p.x + Math.abs(p.width)) && event.y >= p.y && event.y <= (p.y + Math.abs(p.height))) {
             const placement = {
-                align: props.variant === 'vertical' ? 'start' : 'middle',
-                justify: props.variant === 'vertical' ? 'middle' : 'end',
+                align: variant === 'vertical' ? 'start' : 'middle',
+                justify: variant === 'vertical' ? 'middle' : 'end',
                 variant: 'rect'
             }
             drawn = true
-            if (i === props.ctx.lastOnHover)
-                props.ctx.tooltip(
+            if (i === ctx.lastOnHover)
+                ctx.tooltip(
                     p,
                     'rgba(0,0,0,.75)',
-                    props.event,
+                    event,
                     placement,
-                    () => props.drawChart(i)
+                    () => ctx.clearAll()
                 )
             else
-                props.ctx.opacityTransition(
+                ctx.opacityTransition(
                     false,
                     '#000',
                     250,
                     (color) => {
-                        props.ctx.tooltip(
+                        ctx.tooltip(
                             p,
                             color,
-                            props.event,
+                            event,
                             placement,
-                            () => props.drawChart(i)
+                            () => {
+                                ctx.clearAll()
+                                drawChart(i)
+                            }
                         )
                     }, .75)
 
@@ -42,16 +51,9 @@ export default function onHover(props) {
 
     if (drawn === false) {
         CanvasRenderingContext2D.prototype.lastOnHover = undefined
-        props.drawChart()
+        ctx.clearAll()
+        drawChart()
     }
 }
 
-onHover.propTypes = {
-    variant: PropTypes.oneOf(['vertical', 'horizontal', 'line']),
-    event: PropTypes.object.isRequired,
-    points: PropTypes.array.isRequired,
-
-    ctx: PropTypes.object.isRequired,
-    drawChart: PropTypes.func.isRequired
-
-}
+onHover.propTypes = {}

@@ -136,8 +136,6 @@ export default function useHorizontalChart(props) {
 
     }, [props.data, context, width, height, theme, firstRender, dimensions, points])
 
-
-    return {ref, width, height, parentRef}
 }
 
 

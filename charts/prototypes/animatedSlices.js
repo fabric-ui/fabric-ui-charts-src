@@ -5,9 +5,8 @@ import getEase from "../utils/getEase";
 export default function animateSlice(strokeStyle, slice, cx, cy, timestamp, targetRadius, isOnHover, index, onEnded) {
     let {startAngle, endAngle, color, radius} = {...slice}
     let start, previousTimeStamp, targetTimestamp = timestamp === 0 ? 0 : timestamp + index * 50
-
         radius = 0
-    console.log(this.animationEnded)
+
     const draw = (elapsed) => {
         this.clearArc(cx, cy, targetRadius*100 , startAngle, endAngle)
 

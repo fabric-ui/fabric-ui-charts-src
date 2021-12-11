@@ -1,26 +1,48 @@
 import useChart from "../hooks/useChart";
-import React, {useEffect} from "react";
+import React, {useEffect, useMemo} from "react";
 import onHover from "../events/onHover";
 import PropTypes from "prop-types";
+import drawGrid from "../utils/drawGrid";
 
 
-export default function useLineChart(props) {
+export default function useLineChart({
+                                         iterations,
+                                         biggest,
+                                         totals,
+                                         points,
+                                         setPoints,
+                                         theme,
+                                         getLayer,
+                                         data,
+                                         axis,
+                                         values,
+                                         width,
+                                         height,
+                                         labelSpacing
+                                     }) {
+
+    const {layerZero, layerOne, layerTwo} = useMemo(() => {
+        return {layerZero: getLayer(0), layerOne: getLayer(1), layerTwo: getLayer(2)}
+    }, [width, height])
+
     let xBefore, yBefore
-
+    const handleMouseOut = () => {
+        drawChart()
+    }
     const drawLine = ({point, position, onHover, valueKey, valueColor, valueLabel}) => {
         const pVariation = (point[valueKey] * 100) / biggest
-        const height = ((pVariation * (ref.current.height - labelSpacing * 1.35)) / 100)
-        let x = (position * (ref.current.width - labelSpacing * 1.75 - 4) / (props.data.length - 1)) + labelSpacing * 1.35,
-            y = ref.current.height - labelSpacing - height
+        const height = ((pVariation * (layerOne.canvas.height - labelSpacing * 1.35)) / 100)
+        let x = (position * (layerOne.canvas.width - labelSpacing * 1.75 - 4) / (data.length - 1)) + labelSpacing * 1.35,
+            y = layerOne.canvas.height - labelSpacing - height
 
         if (points.length === 0)
             setPoints(prevState => {
                 return [...prevState, {
                     x: x - 10,
                     y: y - 10,
-                    axis: point[props.axis.field],
+                    axis: point[axis.field],
                     value: point[valueKey],
-                    axisLabel: props.axis.label,
+                    axisLabel: axis.label,
                     valueLabel: valueLabel,
                     color: valueColor,
                     width: 20,
@@ -28,22 +50,22 @@ export default function useLineChart(props) {
                 }]
             })
 
-        context.strokeStyle = valueColor
-        context.fillStyle = valueColor
+        layerOne.strokeStyle = valueColor
+        layerOne.fillStyle = valueColor
 
-        context.beginPath();
-        context.arc(x, y, onHover ? 8 : 4, 0, 2 * Math.PI);
-        context.fill();
-        context.stroke();
+        layerOne.beginPath();
+        layerOne.arc(x, y, onHover ? 8 : 4, 0, 2 * Math.PI);
+        layerOne.fill();
+        layerOne.stroke();
 
         if (position > 0) {
-            context.setLineDash([3, 3]);
-            context.beginPath();
-            context.moveTo(xBefore, yBefore);
+            layerOne.setLineDash([3, 3]);
+            layerOne.beginPath();
+            layerOne.moveTo(xBefore, yBefore);
 
-            context.lineTo(x, y);
-            context.stroke();
-            context.setLineDash([]);
+            layerOne.lineTo(x, y);
+            layerOne.stroke();
+            layerOne.setLineDash([]);
         }
 
         xBefore = x
@@ -51,26 +73,14 @@ export default function useLineChart(props) {
     }
 
     const drawChart = (onHover) => {
-        context.clearAll()
-        context.grid({
-            strokeStyle: theme.themes.fabric_border_secondary,
-            variant: 'line',
-            ctx: context,
-            iterations: iterations,
-            labelPadding: labelSpacing,
-            data: props.data,
-            element: ref.current,
-            color: theme.themes.fabric_color_quaternary,
-            axisKey: props.axis.field,
-            width: ((ref.current.width - labelSpacing * 1.35) / (props.data.length)),
-            offset: 0
-        })
-        props.values.map(valueObj => {
-            props.data.forEach((el, index) => {
+        layerOne.clearAll()
+
+        values.map(valueObj => {
+            data.forEach((el, index) => {
                 drawLine({
                     point: el,
                     position: index,
-                    onHover:  onHover !== undefined ? points[onHover].value === el[valueObj.field] && points[onHover].axis === el[props.axis.field] : false,
+                    onHover:  onHover !== undefined ? points[onHover].value === el[valueObj.field] && points[onHover].axis === el[axis.field] : false,
                     valueKey: valueObj.field,
                     valueColor: valueObj.hexColor,
                     valueLabel: valueObj.label
@@ -79,23 +89,12 @@ export default function useLineChart(props) {
         })
     }
 
-    const {
-        points, setPoints, parentRef,
-        theme, biggest, ref, iterations,
-        labelSpacing, context,
-        width, height
-    } = useChart({
-        axisKey: props.axis.field,
-        data: props.data,
-        values: props.values
-    })
-
     const handleMouseMove = (event) => {
-        const bBox = ref.current?.getBoundingClientRect()
+        const bBox = layerOne.canvas.parentNode.getBoundingClientRect()
 
         onHover({
             variant: 'line',
-            ctx: context,
+            ctx: layerTwo,
             event: {
                 x: event.clientX - bBox.left,
                 y: event.clientY - bBox.top,
@@ -103,36 +102,38 @@ export default function useLineChart(props) {
                 height: bBox.height
             },
             points: points,
-            drawChart: (onHover) => drawChart(onHover),
+            drawChart: drawChart
         })
     }
 
     useEffect(() => {
-        if (context) {
-            context.defaultFont()
+        if(layerZero){
+            layerZero.defaultFont()
+            drawGrid({
+                layer: layerZero,
+                strokeStyle: theme.themes.fabric_border_secondary,
+                variant: 'line',
+                iterations: iterations,
+                labelPadding: labelSpacing,
+                data: data,
+                color: theme.themes.fabric_color_quaternary,
+                axisKey: axis.field,
+                width: ((layerZero.canvas.width - labelSpacing * 1.35) / (data.length)),
+                offset: 0
+            })
+        }
+    }, [layerZero, data, width, height])
+
+    useEffect(() => {
+        if (layerOne) {
+            layerOne.defaultFont()
             drawChart()
         }
-        ref.current?.addEventListener('mousemove', handleMouseMove)
+        layerOne?.canvas.parentNode.addEventListener('mousemove', handleMouseMove)
+        layerOne?.canvas.parentNode.addEventListener('mouseout', handleMouseOut)
         return () => {
-            ref.current?.removeEventListener('mousemove', handleMouseMove)
+            layerOne?.canvas.parentNode.removeEventListener('mousemove', handleMouseMove)
+            layerOne?.canvas.parentNode.removeEventListener('mouseout', handleMouseOut)
         }
-    }, [props.data, context, width, height, theme, points])
-
-
-    return {ref, width, height, parentRef}
-}
-
-
-useLineChart.propTypes = {
-    data: PropTypes.arrayOf(PropTypes.object),
-    variant: PropTypes.string,
-    axis: PropTypes.object,
-    values: PropTypes.arrayOf(
-        PropTypes.shape({
-            label: PropTypes.string,
-            field: PropTypes.string,
-            hexColor: PropTypes.string
-        })
-    ).isRequired,
-    styles: PropTypes.object
+    }, [data, layerOne, width, height, theme, points])
 }

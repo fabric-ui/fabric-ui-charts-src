@@ -1,5 +1,5 @@
 import useChart from "../hooks/useChart";
-import React, {useEffect} from "react";
+import React, {useEffect, useMemo} from "react";
 import useAsyncMemo from "../hooks/useAsyncMemo";
 import PropTypes from "prop-types";
 import hexToRgba from "../utils/hexToRgba";
@@ -7,23 +7,29 @@ import onHover from "../events/onHover";
 import randomColor from "../utils/randomColor";
 
 
-export default function useRadarChart(props) {
+export default function useRadarChart({
+                                          iterations,
+                                          biggest,
+                                          totals,
+                                          points,
+                                          setPoints,
+                                          theme,
+                                          getLayer,
+                                          data,
+                                          axis,
+                                          values,
+                                          width,
+                                          height
+                                      }) {
 
-    const {
-        points, setPoints, parentRef,
-        theme, ref, context, iterations,
-        total,
-        width, height, biggest
-    } = useChart({
-        axisKey: props.axis.field,
-        data: props.data,
-        values: props.values,
-    })
+    const {layerZero, layerOne, layerTwo} = useMemo(() => {
+        return {layerZero: getLayer(0), layerOne: getLayer(1), layerTwo: getLayer(2)}
+    }, [width, height])
 
     const placement = useAsyncMemo(() => {
         if (width !== undefined && height !== undefined) {
-            let cx = ref.current.width / 2
-            let cy = ref.current.height / 2
+            let cx = layerZero.canvas.width / 2
+            let cy = layerZero.canvas.height / 2
             let radius = ((cx > cy ? cy : cx) - cy * .3) * 1.25
 
             // console.log()
@@ -34,9 +40,9 @@ export default function useRadarChart(props) {
 
 
     const handleMouseMove = (event) => {
-        const bBox = ref.current?.getBoundingClientRect()
+        const bBox = layerZero.canvas?.getBoundingClientRect()
         onHover({
-            ctx: context,
+            ctx: layerTwo,
             event: {
                 x: event.clientX - bBox.left,
                 y: event.clientY - bBox.top,
@@ -44,53 +50,47 @@ export default function useRadarChart(props) {
                 height: bBox.height
             },
             points: points,
-            drawChart: (onHover) => drawChart(onHover),
             placement: placement,
-            variant: 'line'
+            variant: 'line',
+            drawChart: drawChart
         })
     }
     const handleMouseOut = () => {
         drawChart()
     }
     const drawValue = (index, step, shift, point, valueKey, valueLabel, valueColor, valueIndex, newPoints, onHover) => {
-        context.strokeStyle = valueColor
+        layerOne.strokeStyle = valueColor
 
         const pVariation = (point[valueKey]) / biggest
 
         let currentStep = index * step + shift;
-        const axis = point[props.axis.field]
+        const axisAttr = point[axis?.field]
 
-        if (valueIndex === 0) {
-            const px = placement.cx + (placement.radius * 1.1) * Math.cos(currentStep),
-                py = placement.cy + (placement.radius * 1.1 - 4) * Math.sin(currentStep)
-            context.fillStyle = theme.themes.fabric_color_tertiary
-            context.fillText(axis, px - axis.length * 4, py + 4)
-        }
         const {x, y} = {
             x: placement.cx + (placement.radius * pVariation) * Math.cos(currentStep),
             y: placement.cy + (placement.radius * pVariation) * Math.sin(currentStep)
         }
         const newPoint = {
             x: x, y: y, width: 20, height: 20,
-            axis: axis,
+            axis: axisAttr,
             value: point[valueKey],
-            axisLabel: props.axis.label,
+            axisLabel: axis.label,
             valueLabel: valueLabel,
             color: valueColor
         }
         newPoints.push(newPoint)
-        context.beginPath()
+        layerOne.beginPath()
         if (index > 0)
-            context.moveTo(newPoints[index - 1].x, newPoints[index - 1].y);
-        context.lineTo(x, y);
-        context.stroke();
-        context.closePath()
+            layerOne.moveTo(newPoints[index - 1].x, newPoints[index - 1].y);
+        layerOne.lineTo(x, y);
+        layerOne.stroke();
+        layerOne.closePath()
 
-        context.beginPath()
-        context.arc(x, y, onHover ? 10 : 4, 0, Math.PI * 2, false)
-        context.fillStyle = valueColor
-        context.fill()
-        context.closePath()
+        layerOne.beginPath()
+        layerOne.arc(x, y, onHover ? 10 : 4, 0, Math.PI * 2, false)
+        layerOne.fillStyle = valueColor
+        layerOne.fill()
+        layerOne.closePath()
 
     }
 
@@ -104,50 +104,35 @@ export default function useRadarChart(props) {
         }
     }
     const drawChart = (onHover = undefined) => {
-        context.clearAll()
-        context.lineWidth = 1
-        runIncrement((currentIncrement, i) => {
-            context.polygon(theme.themes.fabric_border_secondary, props.data.length, placement.cx, placement.cy, currentIncrement, i === iterations.length - 1)
-        })
-        runIncrement((currentIncrement, i) => {
-            if (i > 0) {
-                const value = `${iterations[iterations.length - i - 1]}`
-                const px = placement.cx - value.length * 4, py = placement.cy - currentIncrement + 8
-                context.fillStyle = theme.themes.fabric_background_primary
-                context.fillRect(px - value.length, py - 11, value.length * 10, 14)
+        layerOne.clearAll()
 
-                context.fillStyle = theme.themes.fabric_color_tertiary
-                context.fillText(value, px, py)
-            }
-        })
-
-        let step = 2 * Math.PI / props.data.length,
-            shift = (props.data.length % 2 ? -1 : 1) * (props.data.length / 2) * Math.PI / props.data.length
-        context.lineWidth = 2
+        let step = 2 * Math.PI / data.length,
+            shift = (data.length % 2 ? -1 : 1) * (data.length / 2) * Math.PI / data.length
+        layerOne.lineWidth = 2
 
         let allPoints = []
 
-        props.values.forEach((valueObj, vi) => {
+        values.forEach((valueObj, vi) => {
             let newPoints = []
-            props.data.forEach((point, index) => {
-                drawValue(index, step, shift, point, valueObj.field, valueObj.label, valueObj.hexColor, vi, newPoints, onHover !== undefined ? points[onHover].value === point[valueObj.field] && points[onHover].axis === point[props.axis.field] : false)
+            data.forEach((point, index) => {
+                drawValue(index, step, shift, point, valueObj.field, valueObj.label, valueObj.hexColor, vi, newPoints, onHover !== undefined ? points[onHover].value === point[valueObj.field] && points[onHover].axis === point[axis.field] : false)
             })
 
             // FILL
-            context.beginPath()
-            context.fillStyle = hexToRgba(valueObj.hexColor, .3)
+            layerOne.beginPath()
+            layerOne.fillStyle = hexToRgba(valueObj.hexColor, .3)
             newPoints.forEach(p => {
-                context.lineTo(p.x, p.y);
+                layerOne.lineTo(p.x, p.y);
             })
-            context.fill()
-            context.closePath()
+            layerOne.fill()
+            layerOne.closePath()
             // FILL
             // CONNECT-LAST-LINE
-            context.beginPath()
-            context.moveTo(newPoints[newPoints.length - 1].x, newPoints[newPoints.length - 1].y);
-            context.lineTo(newPoints[0].x, newPoints[0].y);
-            context.stroke();
-            context.closePath()
+            layerOne.beginPath()
+            layerOne.moveTo(newPoints[newPoints.length - 1].x, newPoints[newPoints.length - 1].y);
+            layerOne.lineTo(newPoints[0].x, newPoints[0].y);
+            layerOne.stroke();
+            layerOne.closePath()
             // CONNECT-LAST-LINE
             allPoints.push(...newPoints)
         })
@@ -160,40 +145,54 @@ export default function useRadarChart(props) {
             }))
     }
 
+    useEffect(() => {
+        if (layerZero && placement) {
+            layerZero.clearAll()
+            layerZero.defaultFont()
+            let step = 2 * Math.PI / data.length,
+                shift = (data.length % 2 ? -1 : 1) * (data.length / 2) * Math.PI / data.length
+            data.map((d, index)=> {
+
+                let currentStep = index * step + shift;
+                const px = placement.cx + (placement.radius * 1.1) * Math.cos(currentStep),
+                    py = placement.cy + (placement.radius * 1.1 - 4) * Math.sin(currentStep)
+                layerZero.fillStyle = theme.themes.fabric_color_tertiary
+                layerZero.fillText(d[axis.field], px - d[axis.field].length * 4, py + 4)
+
+            })
+
+            layerZero.lineWidth = 1
+            runIncrement((currentIncrement, i) => {
+                layerZero.polygon(theme.themes.fabric_border_secondary, data.length, placement.cx, placement.cy, currentIncrement, i === iterations.length - 1)
+            })
+            runIncrement((currentIncrement, i) => {
+                if (i > 0) {
+                    const value = `${iterations[iterations.length - i - 1]}`
+                    const px = placement.cx - value.length * 4, py = placement.cy - currentIncrement + 8
+                    layerZero.fillStyle = theme.themes.fabric_background_primary
+                    layerZero.fillRect(px - value.length, py - 11, value.length * 10, 14)
+
+                    layerZero.fillStyle = theme.themes.fabric_color_tertiary
+                    layerZero.fillText(value, px, py)
+                }
+            })
+        }
+    }, [width, height, layerZero, placement])
 
     useEffect(() => {
-
-        if (context && width !== undefined && placement !== undefined) {
-            context.defaultFont()
+        if (layerOne && width !== undefined && placement !== undefined) {
+            layerOne?.defaultFont()
             drawChart()
-
-            // if (context.animationEnded) {
-            ref.current?.addEventListener('mousemove', handleMouseMove)
-            ref.current?.addEventListener('mouseout', handleMouseOut)
-            // }
         }
-
+        layerOne?.canvas.parentNode.addEventListener('mousemove', handleMouseMove)
+        layerOne?.canvas.parentNode.addEventListener('mouseout', handleMouseOut)
         return () => {
-            ref.current?.removeEventListener('mousemove', handleMouseMove)
-            ref.current?.removeEventListener('mouseout', handleMouseOut)
+            layerOne?.canvas.parentNode.removeEventListener('mousemove', handleMouseMove)
+            layerOne?.canvas.parentNode.removeEventListener('mouseout', handleMouseOut)
         }
-    }, [total, context, width, height, theme, points, placement])
+    }, [totals, width, height, theme, points, placement])
 
-
-    return {ref, width, height, parentRef}
 }
 
 
-useRadarChart.propTypes = {
-    data: PropTypes.arrayOf(PropTypes.object),
-    variant: PropTypes.string,
-    axis: PropTypes.object,
-    values: PropTypes.arrayOf(
-        PropTypes.shape({
-            label: PropTypes.string,
-            field: PropTypes.string,
-            hexColor: PropTypes.string
-        })
-    ).isRequired,
-    styles: PropTypes.object
-}
+// useRadarChart.propTypes =

@@ -1,22 +1,21 @@
 import React, {useEffect, useState} from "react";
 
-export default function useDimensions(parent) {
+export default function useDimensions(target) {
     const [width, setWidth] = useState()
     const [height, setHeight] = useState()
     let resizeObs
 
     const callback = () => {
-        setWidth(parent.offsetWidth - (parent.firstChild.offsetLeft - parent.offsetLeft) *2)
-        const marginBottom = window.getComputedStyle(parent.firstChild, null).getPropertyValue('margin-bottom').replace('px', '')
-        setHeight(parent.offsetHeight - parent.firstChild.offsetHeight - parseInt(marginBottom))
+        setWidth(target.offsetWidth)
+        setHeight(target.offsetHeight)
     }
 
     useEffect(() => {
-        if (parent) {
+        if (target) {
             resizeObs = new ResizeObserver(callback)
-            resizeObs.observe(parent)
+            resizeObs.observe(target)
         }
-    }, [parent])
+    }, [target])
 
     return {width, height}
 }
