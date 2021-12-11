@@ -38,9 +38,9 @@ function drawTriangle(x, y, width, height, placement, context) {
 }
 
 export default function tooltip(point, color, event, placement, draw) {
-    const {x, y, width, height, axis, axisLabel, value, valueLabel} = point
+    let {x, y, width, height, axis, axisLabel, value, valueLabel} = point
     const {align, justify} = placement
-
+    value = value.toFixed(2)
     draw()
 
     let tooltipWidth = value.toString().length * 8 + valueLabel.length * 8 + 16

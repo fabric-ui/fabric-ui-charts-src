@@ -11,12 +11,12 @@ export default function usePieChart(props) {
     const {
         points, setPoints, parentRef,
         theme, ref, context,
-        labelSpacing, total,
+        labelSpacing, totals,
         width, height
     } = useChart({
         axisKey: props.axis.field,
         data: props.data,
-        valueKey: props.value.field,
+        values: props.values,
     })
 
     const ratio = useMemo(() => {
@@ -27,9 +27,8 @@ export default function usePieChart(props) {
         if (width !== undefined && height !== undefined) {
             let cx = ref.current.width / 2
             let cy = ref.current.height / 2
-            let radius = (cx > cy ? cy : cx) - cy * .3
+            let radius = (cx > cy ? cy : cx) - 14
 
-            // console.log()
             return {cx, cy, radius}
         } else
             return undefined
@@ -51,75 +50,86 @@ export default function usePieChart(props) {
             drawChart: (onHover) => drawChart(onHover),
             placement: placement,
             variant: props.variant,
-            ratio: ratio
+            ratioRadius: (props.variant === 'donut' ? (placement.radius*ratio/(props.values.length)) : placement.radius)
         })
     }
     const handleMouseOut = () => {
         drawChart()
+
     }
 
-    const drawChart = (onHover=undefined) => {
+    const drawChart = (onHover = undefined) => {
         context.clearAll()
-        const filteredData = props.data.filter(e => e[props.value.field] !== 0)
-        let startAngle = 0, newPoints = []
 
-        filteredData.forEach((point, index) => {
-                let tooltipY, tooltipX, endAngle = (point[props.value.field] / total) * (Math.PI * 2) + startAngle
-                const color = points.length === 0 ? randomColor() : points[index].color
-                const r = ((placement.radius + (props.variant === 'donut' ? placement.radius * ratio : 0)) / 2)
+        const iteration = placement.radius / props.values.length
+        let currentRadius = placement.radius, newPoints = []
+        props.values.forEach((valueObj, vi) => {
+            const filteredData = props.data.filter(e => e[valueObj.field] !== 0)
 
-                tooltipY = Math.sin((startAngle + endAngle) / 2) * r * 1.1
-                tooltipX = Math.cos((startAngle + endAngle) / 2) * r * 1.1
+            let startAngle = 0
+            context.clearArc(placement.cx, placement.cy, currentRadius, 0, Math.PI * 2)
+            filteredData.forEach((point, index) => {
+                    let tooltipY, tooltipX, endAngle = (point[valueObj.field] / totals[vi]) * (Math.PI * 2) + startAngle
+                    const r = ((currentRadius) / 2)
 
-                const newPoint = {
-                    value: point[props.value.field],
-                    color: color,
-                    startAngle: startAngle,
-                    endAngle: endAngle,
-                    valueLabel: props.value.label,
-                    axis: point[props.axis.field],
-                    tooltipX: tooltipX + placement.cx,
-                    tooltipY: tooltipY + placement.cy
-                }
-                if (points.length === 0)
-                    newPoints.push(newPoint)
-                context.animateSlice(
-                    theme.themes.fabric_background_primary,
-                    newPoint,
-                    placement.cx,
-                    placement.cy,
-                    context.animationEnded ? 0 : 500,
-                    placement.radius,
-                    onHover === index,
-                    index,
-                    () => {
+                    tooltipY = Math.sin((startAngle + endAngle) / 2) * r * 1.5
+                    tooltipX = Math.cos((startAngle + endAngle) / 2) * r * 1.5
 
-                        let deltaX, deltaY, theta, textAngle
-                        const message = `${(newPoint.value * 100 / total).toFixed(2)}%`
-                        context.font = '600 14px Roboto'
-                        context.fillStyle = theme.themes.fabric_color_quaternary
-                        context.lineWidth = 2
+                    const newPoint = {
+                        value: point[valueObj.field],
+                        color: valueObj.hexColor,
+                        startAngle: startAngle,
+                        endAngle: endAngle,
+                        valueLabel: valueObj.label,
+                        axis: point[props.axis.field],
+                        radius: currentRadius,
+                        tooltipX: tooltipX + placement.cx,
+                        tooltipY: tooltipY + placement.cy,
+                    }
 
-                        theta = (newPoint.startAngle + newPoint.endAngle) / 2
-                        textAngle = (theta * 180 / Math.PI)
-                        deltaY = Math.sin(theta) * (placement.radius + 14) * 1.1
-                        deltaX = Math.cos(theta) * (placement.radius + (textAngle > 90 && textAngle < 270 ? (message.length * 8) : 0)) * 1.1
-                        context.fillText(message, (deltaX + placement.cx), deltaY + placement.cy)
-                        context.closePath()
+                    if (points.length === 0)
+                        newPoints.push(newPoint)
+                    context.animateSlice(
+                        theme.themes.fabric_background_primary,
+                        newPoint,
+                        placement.cx,
+                        placement.cy,
+                        context.animationEnded ? 0 : 500,
+                        currentRadius,
+                        onHover !== undefined ? points[onHover].value === point[valueObj.field] && points[onHover].axis === point[props.axis.field] : false,
+                        index + vi,
+                        () => {
+                            // if (vi === 0) {
+                            //     let deltaX, deltaY, theta, textAngle
+                            //     const message = `${(newPoint.value * 100 / totals[vi]).toFixed(2)}%`
+                            //     context.font = '600 14px Roboto'
+                            //     context.fillStyle = theme.themes.fabric_color_quaternary
+                            //     context.lineWidth = 2
+                            //
+                            //     theta = (newPoint.startAngle + newPoint.endAngle) / 2
+                            //     textAngle = (theta * 180 / Math.PI)
+                            //     deltaY = Math.sin(theta) * (currentRadius + 14) * 1.1
+                            //     deltaX = Math.cos(theta) * (currentRadius + (textAngle > 90 && textAngle < 270 ? (message.length * 8) : 0)) * 1.1
+                            //     context.fillText(message, (deltaX + placement.cx), deltaY + placement.cy)
+                            //     context.closePath()
+                            // }
 
-                        if (index === filteredData.length - 1) {
-                            if (points.length === 0)
-                                setPoints(newPoints)
-                            if (props.variant === 'donut')
-                                context.animatedArc(placement.cx, placement.cy, placement.radius * ratio, 0, Math.PI * 2, context.donutAnimationEnded ? 0 : 500, () => context.donutAnimationEnded = true)
+                            if (index === filteredData.length - 1 && vi === props.values.length - 1) {
+                                if (points.length === 0)
+                                    setPoints(newPoints)
+                                if (props.variant === 'donut')
+                                    context.animatedArc(placement.cx, placement.cy, currentRadius * ratio, 0, Math.PI * 2, context.donutAnimationEnded ? 0 : 500, () => context.donutAnimationEnded = true)
 
-                        }
+                                context.animationEnded = true
+                            }
 
-                        context.animationEnded = true
-                    })
-                startAngle = endAngle
-            }
-        )
+                        })
+                    startAngle = endAngle
+
+                })
+
+            currentRadius = currentRadius - iteration > 0 ? currentRadius - iteration : iteration
+        })
     }
 
 
@@ -139,7 +149,7 @@ export default function usePieChart(props) {
             ref.current?.removeEventListener('mousemove', handleMouseMove)
             ref.current?.removeEventListener('mouseout', handleMouseOut)
         }
-    }, [total, context, width, height, theme, points, placement])
+    }, [totals, context, width, height, theme, points, placement])
 
 
     return {ref, width, height, parentRef}
@@ -150,6 +160,12 @@ usePieChart.propTypes = {
     data: PropTypes.arrayOf(PropTypes.object),
     variant: PropTypes.string,
     axis: PropTypes.object,
-    value: PropTypes.object,
+    values: PropTypes.arrayOf(
+        PropTypes.shape({
+            label: PropTypes.string,
+            field: PropTypes.string,
+            hexColor: PropTypes.string
+        })
+    ).isRequired,
     styles: PropTypes.object
 }

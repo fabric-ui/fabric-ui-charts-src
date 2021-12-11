@@ -5,8 +5,6 @@ export default function polygon(strokeStyle, sides, cx, cy, radius, drawLines) {
 
     this.beginPath();
 
-    // this.moveTo(radius,0);
-
     for (let i = 0; i <= sides; i++) {
         let currentStep = i * step + shift;
         const {x, y} = {x: cx + radius * Math.cos(currentStep), y: cy + radius * Math.sin(currentStep)}

@@ -62,7 +62,7 @@ export default function useRadarChart(props) {
 
         if (valueIndex === 0) {
             const px = placement.cx + (placement.radius * 1.1) * Math.cos(currentStep),
-                py = placement.cy + (placement.radius * 1.1 - 14) * Math.sin(currentStep)
+                py = placement.cy + (placement.radius * 1.1 - 4) * Math.sin(currentStep)
             context.fillStyle = theme.themes.fabric_color_tertiary
             context.fillText(axis, px - axis.length * 4, py + 4)
         }
@@ -105,9 +105,9 @@ export default function useRadarChart(props) {
     }
     const drawChart = (onHover = undefined) => {
         context.clearAll()
-
+        context.lineWidth = 1
         runIncrement((currentIncrement, i) => {
-            context.polygon(theme.themes.fabric_border_secondary, props.data.length, placement.cx, placement.cy, currentIncrement, i === iterations.length-1)
+            context.polygon(theme.themes.fabric_border_secondary, props.data.length, placement.cx, placement.cy, currentIncrement, i === iterations.length - 1)
         })
         runIncrement((currentIncrement, i) => {
             if (i > 0) {
@@ -130,7 +130,7 @@ export default function useRadarChart(props) {
         props.values.forEach((valueObj, vi) => {
             let newPoints = []
             props.data.forEach((point, index) => {
-                drawValue(index, step, shift, point, valueObj.field, valueObj.label, valueObj.hexColor, vi, newPoints,  onHover ? points[onHover].value === point[valueObj.field] && points[onHover].axis === point[props.axis.field]: false )
+                drawValue(index, step, shift, point, valueObj.field, valueObj.label, valueObj.hexColor, vi, newPoints, onHover !== undefined ? points[onHover].value === point[valueObj.field] && points[onHover].axis === point[props.axis.field] : false)
             })
 
             // FILL

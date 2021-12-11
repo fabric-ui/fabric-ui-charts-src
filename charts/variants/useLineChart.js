@@ -7,8 +7,8 @@ import PropTypes from "prop-types";
 export default function useLineChart(props) {
     let xBefore, yBefore
 
-    const drawLine = ({point, position, onHover}) => {
-        const pVariation = (point[props.value.field] * 100) / biggest
+    const drawLine = ({point, position, onHover, valueKey, valueColor, valueLabel}) => {
+        const pVariation = (point[valueKey] * 100) / biggest
         const height = ((pVariation * (ref.current.height - labelSpacing * 1.35)) / 100)
         let x = (position * (ref.current.width - labelSpacing * 1.75 - 4) / (props.data.length - 1)) + labelSpacing * 1.35,
             y = ref.current.height - labelSpacing - height
@@ -19,16 +19,17 @@ export default function useLineChart(props) {
                     x: x - 10,
                     y: y - 10,
                     axis: point[props.axis.field],
-                    value: point[props.value.field],
+                    value: point[valueKey],
                     axisLabel: props.axis.label,
-                    valueLabel: props.value.label,
+                    valueLabel: valueLabel,
+                    color: valueColor,
                     width: 20,
                     height: 20
                 }]
             })
 
-        context.strokeStyle = props.color ? props.color : '#0095ff'
-        context.fillStyle = props.color ? props.color : '#0095ff'
+        context.strokeStyle = valueColor
+        context.fillStyle = valueColor
 
         context.beginPath();
         context.arc(x, y, onHover ? 8 : 4, 0, 2 * Math.PI);
@@ -64,11 +65,16 @@ export default function useLineChart(props) {
             width: ((ref.current.width - labelSpacing * 1.35) / (props.data.length)),
             offset: 0
         })
-        props.data.forEach((el, index) => {
-            drawLine({
-                point: el,
-                position: index,
-                onHover: index === onHover
+        props.values.map(valueObj => {
+            props.data.forEach((el, index) => {
+                drawLine({
+                    point: el,
+                    position: index,
+                    onHover:  onHover !== undefined ? points[onHover].value === el[valueObj.field] && points[onHover].axis === el[props.axis.field] : false,
+                    valueKey: valueObj.field,
+                    valueColor: valueObj.hexColor,
+                    valueLabel: valueObj.label
+                })
             })
         })
     }
@@ -81,7 +87,7 @@ export default function useLineChart(props) {
     } = useChart({
         axisKey: props.axis.field,
         data: props.data,
-        valueKey: props.value.field
+        values: props.values
     })
 
     const handleMouseMove = (event) => {
@@ -121,6 +127,12 @@ useLineChart.propTypes = {
     data: PropTypes.arrayOf(PropTypes.object),
     variant: PropTypes.string,
     axis: PropTypes.object,
-    value: PropTypes.object,
+    values: PropTypes.arrayOf(
+        PropTypes.shape({
+            label: PropTypes.string,
+            field: PropTypes.string,
+            hexColor: PropTypes.string
+        })
+    ).isRequired,
     styles: PropTypes.object
 }

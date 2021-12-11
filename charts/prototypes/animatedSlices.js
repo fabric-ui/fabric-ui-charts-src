@@ -5,14 +5,13 @@ import getEase from "../utils/getEase";
 export default function animateSlice(strokeStyle, slice, cx, cy, timestamp, targetRadius, isOnHover, index, onEnded) {
     let {startAngle, endAngle, color, radius} = {...slice}
     let start, previousTimeStamp, targetTimestamp = timestamp === 0 ? 0 : timestamp + index * 50
-    if (radius === undefined)
+
         radius = 0
-
+    console.log(this.animationEnded)
     const draw = (elapsed) => {
-        this.clearArc(cx, cy, targetRadius * 100, startAngle, endAngle)
+        this.clearArc(cx, cy, targetRadius*100 , startAngle, endAngle)
 
-        this.fillStyle = !isOnHover ? hexToRgba(color, targetTimestamp && targetTimestamp !== 0 ? .75*elapsed/targetTimestamp : .75) : color
-        console.log(targetTimestamp && targetTimestamp !== 0)
+        this.fillStyle =  !isOnHover ? hexToRgba(color,  this.animationEnded ? .75 : 1) : color
         this.lineWidth = 2
         this.strokeStyle = strokeStyle
 
