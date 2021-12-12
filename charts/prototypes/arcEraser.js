@@ -1,6 +1,6 @@
 import getEase from "../utils/getEase";
 
-export default function animatedArc(cx, cy, radius, startAngle, endAngle, timestamp, onEnded) {
+export default function arcEraser(cx, cy, radius, startAngle, endAngle, timestamp, onEnded) {
     let start, previousTimeStamp
 
     const draw = (elapsed) => {

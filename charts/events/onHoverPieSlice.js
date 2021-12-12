@@ -12,8 +12,6 @@ export default function onHoverPieSlice({
                                         }) {
     let drawn = undefined
     const calculatedEvent = (event.x - placement.cx) ** 2 + (event.y - placement.cy) ** 2
-    console.log(ratioRadius)
-
 
     points.forEach((p, i) => {
         const isInsideSlice = (calculatedEvent < p.radius ** 2) && (variant === 'donut' && calculatedEvent > ratioRadius ** 2 || variant !== 'donut')

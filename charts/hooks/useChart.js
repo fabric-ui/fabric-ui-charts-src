@@ -2,14 +2,14 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import PropTypes from "prop-types";
 import useDimensions from "./useDimensions";
 import ThemeContext from "../../../core/misc/context/ThemeContext";
-import animatedRects from "../prototypes/animatedRects";
+import bar from "../prototypes/bar";
 import roundRect from "../prototypes/roundRect";
 import transition from "../prototypes/transition";
 import drawGrid from "../utils/drawGrid";
 import tooltip from "../prototypes/tooltip";
 
-import animateSlice from "../prototypes/animatedSlices";
-import animatedArc from "../prototypes/animatedArc";
+import animateSlice from "../prototypes/slice";
+import arcEraser from "../prototypes/arcEraser";
 import polygon from "../prototypes/polygon";
 import animatedPolygon from "../prototypes/animatedPolygon";
 import useLayeredCanvas from "./useLayeredCanvas";

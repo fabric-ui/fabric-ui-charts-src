@@ -1,14 +1,15 @@
 import {useCallback, useEffect, useState} from "react";
 import useDimensions from "./useDimensions";
 import roundRect from "../prototypes/roundRect";
-import animatedRects from "../prototypes/animatedRects";
+import bar from "../prototypes/bar";
 import transition from "../prototypes/transition";
 import drawGrid from "../utils/drawGrid";
 import tooltip from "../prototypes/tooltip";
-import animateSlice from "../prototypes/animatedSlices";
-import animatedArc from "../prototypes/animatedArc";
+import animateSlice from "../prototypes/slice";
+import arcEraser from "../prototypes/arcEraser";
 import polygon from "../prototypes/polygon";
 import animatedPolygon from "../prototypes/animatedPolygon";
+import animatedBar from "../prototypes/animatedBar";
 
 export default function useLayeredCanvas( fontColor) {
     const [layers, setLayers] = useState([])
@@ -46,11 +47,12 @@ export default function useLayeredCanvas( fontColor) {
             this.fillStyle = color
             this.font = "500 14px Roboto";
         }
-        CanvasRenderingContext2D.prototype.animatedRect = animatedRects
+        CanvasRenderingContext2D.prototype.newBar = animatedBar
+        CanvasRenderingContext2D.prototype.animatedRect = bar
         CanvasRenderingContext2D.prototype.opacityTransition = transition
         CanvasRenderingContext2D.prototype.tooltip = tooltip
         CanvasRenderingContext2D.prototype.animateSlice = animateSlice
-        CanvasRenderingContext2D.prototype.animatedArc = animatedArc
+        CanvasRenderingContext2D.prototype.animatedArc = arcEraser
         CanvasRenderingContext2D.prototype.polygon = polygon
         CanvasRenderingContext2D.prototype.animatedPolygon = animatedPolygon
         CanvasRenderingContext2D.prototype.clearAll = function () {

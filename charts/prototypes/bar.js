@@ -1,4 +1,4 @@
-export default function animatedRects(points, clear, initialWidth, initialHeight, timestamp, setFirstRender, onBeforeDraw) {
+export default function bar(points, clear, initialWidth, initialHeight, timestamp, setFirstRender, onBeforeDraw) {
     let start, previousTimeStamp
     let newPoints = [...points].map(p => {
         return {
@@ -59,3 +59,6 @@ function getValues(point, initialWidth, initialHeight, timestamp) {
         widthAdjustment
     }
 }
+
+
+
