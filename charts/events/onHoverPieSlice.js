@@ -1,4 +1,3 @@
-import PropTypes from "prop-types";
 import getAngle from "../utils/getAngle";
 
 export default function onHoverPieSlice({

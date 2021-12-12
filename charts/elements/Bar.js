@@ -1,5 +1,3 @@
-import animatedBar from "../prototypes/animatedBar";
-
 export default class Bar {
     animated = false
     animationStarted = false

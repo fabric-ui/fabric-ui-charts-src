@@ -1,9 +1,7 @@
-import {useCallback, useEffect, useState} from "react";
-import useDimensions from "./useDimensions";
+import {useEffect, useState} from "react";
 import roundRect from "../prototypes/roundRect";
-import bar from "../prototypes/bar";
+
 import transition from "../prototypes/transition";
-import drawGrid from "../utils/drawGrid";
 import tooltip from "../prototypes/tooltip";
 import animateSlice from "../prototypes/slice";
 import arcEraser from "../prototypes/arcEraser";
@@ -48,7 +46,6 @@ export default function useLayeredCanvas( fontColor) {
             this.font = "500 14px Roboto";
         }
         CanvasRenderingContext2D.prototype.newBar = animatedBar
-        CanvasRenderingContext2D.prototype.animatedRect = bar
         CanvasRenderingContext2D.prototype.opacityTransition = transition
         CanvasRenderingContext2D.prototype.tooltip = tooltip
         CanvasRenderingContext2D.prototype.animateSlice = animateSlice

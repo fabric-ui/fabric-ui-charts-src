@@ -1,7 +1,5 @@
-import useChart from "../hooks/useChart";
 import React, {useEffect, useMemo} from "react";
 import onHover from "../events/onHover";
-import PropTypes from "prop-types";
 import drawGrid from "../utils/drawGrid";
 
 
@@ -75,7 +73,7 @@ export default function useLineChart({
     const drawChart = (onHover) => {
         layerOne.clearAll()
 
-        values.map(valueObj => {
+        values.filter(v => !v.hidden).map(valueObj => {
             data.forEach((el, index) => {
                 drawLine({
                     point: el,
@@ -108,6 +106,7 @@ export default function useLineChart({
 
     useEffect(() => {
         if(layerZero){
+            layerZero.clearAll()
             layerZero.defaultFont()
             drawGrid({
                 layer: layerZero,
@@ -122,7 +121,7 @@ export default function useLineChart({
                 offset: 0
             })
         }
-    }, [layerZero, data, width, height])
+    }, [layerZero, data, width, height, values])
 
     useEffect(() => {
         if (layerOne) {

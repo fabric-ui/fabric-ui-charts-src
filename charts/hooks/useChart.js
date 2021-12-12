@@ -1,17 +1,6 @@
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from "react";
-import PropTypes from "prop-types";
+import React, {useContext, useEffect, useMemo, useRef, useState} from "react";
 import useDimensions from "./useDimensions";
 import ThemeContext from "../../../core/misc/context/ThemeContext";
-import bar from "../prototypes/bar";
-import roundRect from "../prototypes/roundRect";
-import transition from "../prototypes/transition";
-import drawGrid from "../utils/drawGrid";
-import tooltip from "../prototypes/tooltip";
-
-import animateSlice from "../prototypes/slice";
-import arcEraser from "../prototypes/arcEraser";
-import polygon from "../prototypes/polygon";
-import animatedPolygon from "../prototypes/animatedPolygon";
 import useLayeredCanvas from "./useLayeredCanvas";
 
 const padding = 32
@@ -44,24 +33,24 @@ export default function useChart({data, values, variant, layers}) {
 
     const totals = useMemo(() => {
         let res = []
-        values.forEach((v) => {
+        values.filter(v => !v.hidden).forEach((v) => {
             res.push(data.reduce((t, el) => {
                 return t + el[v.field]
             }, 0))
         })
         return res
-    }, [data])
+    }, [data, values])
 
     const {biggest, iterations} = useMemo(() => {
         let current = {}
-        values.forEach(value => {
+        values.filter(v => !v.hidden).forEach(value => {
             const c = getIterationCandidate(data, value.field, variant, height, width)
 
             if (current.biggest === undefined || c.biggest > current.biggest)
                 current = c
         })
         return current
-    }, [data, width, height])
+    }, [data, width, height, values])
 
 
     useEffect(() => {
@@ -73,10 +62,10 @@ export default function useChart({data, values, variant, layers}) {
 
             CanvasRenderingContext2D.prototype.baseFontColor = theme.themes.fabric_background_primary
         }
-        if (points.length > 0)
+        if (points.length > 0) {
             setPoints([])
-    }, [width, height, data])
-
+        }
+    }, [width, height, data, values])
 
     return {
         iterations, biggest, totals,

@@ -1,17 +1,18 @@
 export default function drawGrid({
-                                    layer,
-                                    strokeStyle,
-                                    iterations,
-                                    labelPadding,
-                                    data,
-                                    axisKey,
+                                     layer,
+                                     strokeStyle,
+                                     iterations,
+                                     labelPadding,
+                                     data,
+                                     axisKey,
 
-                                    color,
-                                    width,
-                                    offset,
-                                    variant,
-                                    height
-                                }) {
+                                     color,
+                                     width,
+                                     offset,
+                                     variant,
+                                     height,
+    valuesLength
+                                 }) {
 
     layer.strokeStyle = strokeStyle
 
@@ -25,26 +26,19 @@ export default function drawGrid({
         switch (variant) {
             case 'vertical': {
                 layer.beginPath();
-                x = (index * Math.abs(width) + labelPadding * 1.25 + offset * (index + 1)) + width / 2
-
-                layer.moveTo(x + width / 2 + offset / 2, 0);
-                layer.lineTo(x + width / 2 + offset / 2, layer.canvas.height - labelPadding);
-                layer.stroke();
+                x = index * (width + offset) + labelPadding*1.35 + (offset/2 + width/2)
 
                 layer.fillStyle = color
-                layer.fillText(d[axisKey], x - (d[axisKey].length * 8) / 2, layer.canvas.height - 16);
+                layer.fillText(d[axisKey], x - (d[axisKey].length * 7) / 2, layer.canvas.height - 16);
                 layer.closePath()
                 break
             }
             case 'horizontal': {
                 layer.beginPath();
-                y = (index + 1) * (height + offset) - offset / 2
-                layer.moveTo(labelPadding, y);
-                layer.lineTo(layer.canvas.width - labelPadding * .40, y);
-                layer.stroke();
+                y = (index + 1) * (height + offset) - offset/2
 
                 layer.fillStyle = color
-                layer.fillText(d[axisKey], 0, y - height / 2 + 2);
+                layer.fillText(d[axisKey], 0, y  - height/2);
                 layer.closePath()
                 break
             }

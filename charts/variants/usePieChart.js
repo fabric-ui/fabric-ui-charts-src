@@ -1,9 +1,7 @@
-import useChart from "../hooks/useChart";
 import React, {useEffect, useMemo} from "react";
 import useAsyncMemo from "../hooks/useAsyncMemo";
 import onHoverPieSlice from "../events/onHoverPieSlice";
 import PropTypes from "prop-types";
-import randomColor from "../utils/randomColor";
 
 
 export default function usePieChart({
@@ -55,21 +53,20 @@ export default function usePieChart({
             drawChart: (onHover) => drawChart(onHover),
             placement: placement,
             variant: variant,
-            ratioRadius: (variant === 'donut' ? (placement.radius * ratio / (values.length)) : placement.radius)
+            ratioRadius: (variant === 'donut' ? (placement.radius * ratio / (values.filter(v => !v.hidden).length)) : placement.radius)
         })
     }
 
     const handleMouseOut = () => {
         drawChart()
-
     }
 
     const drawChart = (onHover = undefined) => {
         layerOne.clearAll()
 
-        const iteration = placement.radius / values.length
+        const iteration = placement.radius / values.filter(v => !v.hidden).length
         let currentRadius = placement.radius, newPoints = []
-        values.forEach((valueObj, vi) => {
+        values.filter(v => !v.hidden).forEach((valueObj, vi) => {
             const filteredData = data.filter(e => e[valueObj.field] !== 0)
 
             let startAngle = 0
@@ -105,22 +102,7 @@ export default function usePieChart({
                     onHover !== undefined ? points[onHover].value === point[valueObj.field] && points[onHover].axis === point[axis.field] : false,
                     index + vi,
                     () => {
-                        // if (vi === 0) {
-                        //     let deltaX, deltaY, theta, textAngle
-                        //     const message = `${(newPoint.value * 100 / totals[vi]).toFixed(2)}%`
-                        //     context.font = '600 14px Roboto'
-                        //     context.fillStyle = theme.themes.fabric_color_quaternary
-                        //     context.lineWidth = 2
-                        //
-                        //     theta = (newPoint.startAngle + newPoint.endAngle) / 2
-                        //     textAngle = (theta * 180 / Math.PI)
-                        //     deltaY = Math.sin(theta) * (currentRadius + 14) * 1.1
-                        //     deltaX = Math.cos(theta) * (currentRadius + (textAngle > 90 && textAngle < 270 ? (message.length * 8) : 0)) * 1.1
-                        //     context.fillText(message, (deltaX + placement.cx), deltaY + placement.cy)
-                        //     context.closePath()
-                        // }
-
-                        if (index === filteredData.length - 1 && vi === values.length - 1) {
+                        if (index === filteredData.length - 1 && vi === values.filter(v => !v.hidden).length - 1) {
                             if (points.length === 0)
                                 setPoints(newPoints)
                             if (variant === 'donut')
@@ -150,7 +132,8 @@ export default function usePieChart({
             layerOne?.canvas.parentNode.removeEventListener('mousemove', handleMouseMove)
             layerOne?.canvas.parentNode.removeEventListener('mouseout', handleMouseOut)
         }
-    }, [totals, layerOne, width, height, theme, points, placement])
+    }, [totals, layerOne, width, height, theme, placement, points])
+
 }
 
 

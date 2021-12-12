@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import React, {useContext, useMemo, useRef} from "react";
+import React, {useContext, useEffect, useMemo, useState} from "react";
 import DashboardContext from "./DashboardContext";
 import shared from "./styles/Charts.module.css";
 import useLineChart from "./variants/useLineChart";
@@ -9,8 +9,8 @@ import usePieChart from "./variants/usePieChart";
 import useRadarChart from "./variants/useRadarChart";
 import useData from "./hooks/useData";
 import randomColor from "./utils/randomColor";
-import useLayeredCanvas from "./hooks/useLayeredCanvas";
 import useChart from "./hooks/useChart";
+import Button from "../../core/inputs/button/Button";
 
 function getHook(variant, params) {
     switch (variant) {
@@ -33,7 +33,9 @@ function getHook(variant, params) {
 export default function Visual(props) {
     const datasets = useContext(DashboardContext)
     const data = useData(datasets, props.axis.field)
-    const values = useMemo(() => {
+    const [values, setValues] = useState(props.values)
+
+    useEffect(() => {
         let res = []
         props.values.forEach(v => {
             if (v.hexColor !== undefined)
@@ -42,8 +44,9 @@ export default function Visual(props) {
                 res.push({...v, hexColor: randomColor()})
         })
 
-        return res
-    }, [])
+        setValues(res)
+
+    }, [props.values])
 
     const hook = useChart({
         axisKey: props.axis.field,
@@ -58,8 +61,7 @@ export default function Visual(props) {
         data: data,
         variant: props.variant,
         axis: props.axis,
-        values: values,
-
+        values: values
     })
 
     return (
@@ -69,13 +71,22 @@ export default function Visual(props) {
                 {props.title}
                 {values.length > 0 ?
                     <div className={shared.datasets}>
-                        {values.map(e => (
-                            <div className={shared.datasetWrapper}>
+                        {values.map((e, i) => (
+                            <Button
+                                disabled={!e.hidden && values.filter(v => !v.hidden).length === 1}
+                                styles={{opacity: e.hidden ? '.5' : '1'}}
+                                className={shared.datasetWrapper}
+                                onClick={() => setValues(prevState => {
+                                    let v = [...prevState]
+                                    v[i] = {...v[i], hidden: !v[i].hidden}
+
+                                    return v
+                                })}>
                                 <div className={shared.datasetLabel}>
                                     {e.label}
                                 </div>
                                 <div className={shared.datasetIndicator} style={{background: e.hexColor}}/>
-                            </div>
+                            </Button>
                         ))}
                     </div>
                     : null}

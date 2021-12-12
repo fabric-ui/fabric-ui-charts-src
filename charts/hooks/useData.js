@@ -1,5 +1,4 @@
 import {useMemo} from "react";
-import Visual from "../Visual";
 
 export default function useData(datasets, axis) {
 

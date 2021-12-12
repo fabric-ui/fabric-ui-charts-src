@@ -1,10 +1,7 @@
-import useChart from "../hooks/useChart";
 import React, {useEffect, useMemo} from "react";
 import useAsyncMemo from "../hooks/useAsyncMemo";
-import PropTypes from "prop-types";
 import hexToRgba from "../utils/hexToRgba";
 import onHover from "../events/onHover";
-import randomColor from "../utils/randomColor";
 
 
 export default function useRadarChart({
@@ -32,7 +29,6 @@ export default function useRadarChart({
             let cy = layerZero.canvas.height / 2
             let radius = ((cx > cy ? cy : cx) - cy * .3) * 1.25
 
-            // console.log()
             return {cx, cy, radius}
         } else
             return undefined
@@ -112,7 +108,7 @@ export default function useRadarChart({
 
         let allPoints = []
 
-        values.forEach((valueObj, vi) => {
+        values.filter(v => !v.hidden).forEach((valueObj, vi) => {
             let newPoints = []
             data.forEach((point, index) => {
                 drawValue(index, step, shift, point, valueObj.field, valueObj.label, valueObj.hexColor, vi, newPoints, onHover !== undefined ? points[onHover].value === point[valueObj.field] && points[onHover].axis === point[axis.field] : false)
@@ -177,7 +173,7 @@ export default function useRadarChart({
                 }
             })
         }
-    }, [width, height, layerZero, placement])
+    }, [width, height, layerZero, placement, totals])
 
     useEffect(() => {
         if (layerOne && width !== undefined && placement !== undefined) {

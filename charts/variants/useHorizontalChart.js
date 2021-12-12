@@ -1,8 +1,6 @@
-import useChart from "../hooks/useChart";
 import React, {useEffect, useMemo, useState} from "react";
 
 import onHover from "../events/onHover";
-import hexToRgba from "../utils/hexToRgba";
 import useAsyncMemo from "../hooks/useAsyncMemo";
 import PropTypes from "prop-types";
 import drawGrid from "../utils/drawGrid";
@@ -49,7 +47,9 @@ export default function useHorizontalChart({
     const handleMouseOut = () => {
         drawChart()
     }
-
+    const valuesLength = useMemo(() => {
+        return values.filter(v => !v.hidden).length
+    }, [values])
     const dimensions = useAsyncMemo(() => {
         if (layerOne) {
             const length = data.length
@@ -77,31 +77,34 @@ export default function useHorizontalChart({
                 width: width,
                 offset: dimensions.offset,
                 height: dimensions.barHeight,
-                layer: layerZero
+                layer: layerZero,
+                valuesLength: valuesLength
             })
         }
-    }, [width, height, layerZero, dimensions])
+    }, [width, height, layerZero, dimensions, values])
 
     const drawChart = (onHover = undefined) => {
-        if (onHover !== undefined)
-            console.log(onHover)
+        console.log(bars.length)
+
         layerOne.clearAll()
         let newPoints = [], newInstances = []
-        values.forEach((valueObj, vi) => {
+
             data.forEach((point, index) => {
+                values.filter(v => !v.hidden).forEach((valueObj, vi) => {
                 const pVariation = (point[valueObj.field] * 100) / biggest
                 const x = labelSpacing * 1.35
-                const y = (index * Math.abs(dimensions.barHeight) + dimensions.offset * (index + vi))
+                // const y = (index * Math.abs(dimensions.barHeight) + dimensions.offset * (index + vi))
                 const width = (pVariation * (layerOne.canvas.width - labelSpacing * 1.75)) / 100
-
-                const instance = bars.length === 0 ? new Bar('width', width, dimensions.barHeight / values.length, x, y, index, valueObj.hexColor,) : bars[vi + index]
+                const barH = (dimensions.barHeight) / valuesLength
+                const y = index * (dimensions.barHeight + dimensions.offset)  + (vi * (barH + dimensions.offset / (valuesLength * 2)))
+                const instance = bars.length === 0 ? new Bar('width', width, dimensions.barHeight / values.filter(v => !v.hidden).length, x, y, index, valueObj.hexColor,) : bars[vi + index]
 
                 if (bars.length === 0)
                     newInstances.push(instance)
                 else {
                     instance.width = width
                     instance.color = valueObj.hexColor
-                    instance.height = dimensions.barHeight / values.length
+                    instance.height = dimensions.barHeight / values.filter(v => !v.hidden).length
                     instance.x = x
                     instance.y = y
                 }
@@ -114,7 +117,7 @@ export default function useHorizontalChart({
                     axisLabel: axis.label,
                     value: point[valueObj.field],
                     valueLabel: valueObj.label,
-                    height: dimensions.barHeight / values.length,
+                    height: dimensions.barHeight / values.filter(v => !v.hidden).length,
                     width: width,
                     color: valueObj.hexColor
                 }
@@ -136,12 +139,18 @@ export default function useHorizontalChart({
         }
 
         layerOne?.canvas.parentNode.addEventListener('mousemove', handleMouseMove)
-        layerOne?.canvas.parentNode.addEventListener('mouseout', handleMouseOut)
+        layerOne?.canvas.addEventListener('mouseout', handleMouseOut)
         return () => {
             layerOne?.canvas.parentNode.removeEventListener('mousemove', handleMouseMove)
-            layerOne?.canvas.parentNode.removeEventListener('mouseout', handleMouseOut)
+            layerOne?.canvas.removeEventListener('mouseout', handleMouseOut)
         }
     }, [data, layerOne, width, height, theme, dimensions, bars])
+
+    useEffect(() => {
+
+        setBars([])
+        layerOne?.clearAll()
+    }, [values])
 }
 
 
