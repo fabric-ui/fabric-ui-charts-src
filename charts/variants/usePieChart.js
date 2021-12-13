@@ -2,13 +2,12 @@ import React, {useEffect, useMemo} from "react";
 import useAsyncMemo from "../hooks/useAsyncMemo";
 import onHoverPieSlice from "../events/onHoverPieSlice";
 import PropTypes from "prop-types";
+import useHover from "../hooks/useHover";
 
 
 export default function usePieChart({
                                         donutRatio,
                                         variant,
-                                        iterations,
-                                        biggest,
                                         totals,
                                         points,
                                         setPoints,
@@ -20,13 +19,30 @@ export default function usePieChart({
                                         width,
                                         height
                                     }) {
-    const { layerOne, layerTwo} = useMemo(() => {
-        return { layerOne: getLayer(1), layerTwo: getLayer(2)}
+
+    const visibleValues = useMemo(() => {
+        return values.filter(b => !b.hidden)
+    }, [values])
+
+    const {layerOne, layerTwo} = useMemo(() => {
+        return {layerOne: getLayer(1), layerTwo: getLayer(2)}
     }, [width, height])
 
     const ratio = useMemo(() => {
         return (donutRatio ? donutRatio : .7)
     }, [donutRatio])
+
+    useHover(layerTwo, points, (event) => {
+        onHoverPieSlice({
+            ctx: layerTwo,
+            event: event,
+            points: points,
+            drawChart: drawChart,
+            placement: placement,
+            variant: variant,
+            ratioRadius: (variant === 'donut' ? (placement.radius * ratio / (visibleValues.length)) : placement.radius)
+        })
+    })
 
     const placement = useAsyncMemo(() => {
         if (width !== undefined && height !== undefined) {
@@ -39,37 +55,17 @@ export default function usePieChart({
             return undefined
     }, [width, height])
 
-    const handleMouseMove = (event) => {
-        const bBox = layerOne.canvas?.getBoundingClientRect()
-        onHoverPieSlice({
-            ctx: layerTwo,
-            event: {
-                x: event.clientX - bBox.left,
-                y: event.clientY - bBox.top,
-                width: bBox.width,
-                height: bBox.height
-            },
-            points: points,
-            drawChart: (onHover) => drawChart(onHover),
-            placement: placement,
-            variant: variant,
-            ratioRadius: (variant === 'donut' ? (placement.radius * ratio / (values.filter(v => !v.hidden).length)) : placement.radius)
-        })
-    }
 
-    const handleMouseOut = () => {
-        drawChart()
-    }
 
     const drawChart = (onHover = undefined) => {
         layerOne.clearAll()
 
-        const iteration = placement.radius / values.filter(v => !v.hidden).length
+        const iteration = placement.radius / visibleValues.length
         let currentRadius = placement.radius, newPoints = []
-        values.filter(v => !v.hidden).forEach((valueObj, vi) => {
+        visibleValues.forEach((valueObj, vi) => {
             const filteredData = data.filter(e => e[valueObj.field] !== 0)
-
             let startAngle = 0
+
             layerOne.clearArc(placement.cx, placement.cy, currentRadius, 0, Math.PI * 2)
             filteredData.forEach((point, index) => {
                 let tooltipY, tooltipX, endAngle = (point[valueObj.field] / totals[vi]) * (Math.PI * 2) + startAngle
@@ -99,10 +95,10 @@ export default function usePieChart({
                     placement.cy,
                     layerOne.animationEnded ? 0 : 500,
                     currentRadius,
-                    onHover !== undefined ? points[onHover].value === point[valueObj.field] && points[onHover].axis === point[axis.field] : false,
+                    onHover?.axis === point[axis.field] && onHover.value === point[valueObj.field],
                     index + vi,
                     () => {
-                        if (index === filteredData.length - 1 && vi === values.filter(v => !v.hidden).length - 1) {
+                        if (index === filteredData.length - 1 && vi === visibleValues.length - 1) {
                             if (points.length === 0)
                                 setPoints(newPoints)
                             if (variant === 'donut')
@@ -120,19 +116,13 @@ export default function usePieChart({
         })
     }
 
-
     useEffect(() => {
         if (layerOne && width !== undefined && placement !== undefined) {
             layerOne.defaultFont()
             drawChart()
         }
-        layerOne?.canvas.parentNode.addEventListener('mousemove', handleMouseMove)
-        layerOne?.canvas.parentNode.addEventListener('mouseout', handleMouseOut)
-        return () => {
-            layerOne?.canvas.parentNode.removeEventListener('mousemove', handleMouseMove)
-            layerOne?.canvas.parentNode.removeEventListener('mouseout', handleMouseOut)
-        }
-    }, [totals, layerOne, width, height, theme, placement, points])
+
+    }, [totals, layerOne, width, height, theme, placement])
 
 }
 

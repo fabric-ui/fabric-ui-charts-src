@@ -1,12 +1,12 @@
 import React, {useEffect, useMemo} from "react";
 import onHover from "../events/onHover";
 import drawGrid from "../utils/drawGrid";
+import useHover from "../hooks/useHover";
 
 
 export default function useLineChart({
                                          iterations,
                                          biggest,
-                                         totals,
                                          points,
                                          setPoints,
                                          theme,
@@ -24,29 +24,29 @@ export default function useLineChart({
     }, [width, height])
 
     let xBefore, yBefore
-    const handleMouseOut = () => {
-        drawChart()
-    }
-    const drawLine = ({point, position, onHover, valueKey, valueColor, valueLabel}) => {
+
+    const visibleValues = useMemo(() => {
+        return values.filter(v => !v.hidden)
+    }, [values])
+
+    const drawLine = ({point, position, onHover, valueKey, valueColor, valueLabel, newPoints = []}) => {
         const pVariation = (point[valueKey] * 100) / biggest
         const height = ((pVariation * (layerOne.canvas.height - labelSpacing * 1.35)) / 100)
         let x = (position * (layerOne.canvas.width - labelSpacing * 1.75 - 4) / (data.length - 1)) + labelSpacing * 1.35,
             y = layerOne.canvas.height - labelSpacing - height
 
-        if (points.length === 0)
-            setPoints(prevState => {
-                return [...prevState, {
-                    x: x - 10,
-                    y: y - 10,
-                    axis: point[axis.field],
-                    value: point[valueKey],
-                    axisLabel: axis.label,
-                    valueLabel: valueLabel,
-                    color: valueColor,
-                    width: 20,
-                    height: 20
-                }]
-            })
+
+        newPoints.push({
+            x: x - 10,
+            y: y - 10,
+            axis: point[axis.field],
+            value: point[valueKey],
+            axisLabel: axis.label,
+            valueLabel: valueLabel,
+            color: valueColor,
+            width: 20,
+            height: 20
+        })
 
         layerOne.strokeStyle = valueColor
         layerOne.fillStyle = valueColor
@@ -72,40 +72,39 @@ export default function useLineChart({
 
     const drawChart = (onHover) => {
         layerOne.clearAll()
-
-        values.filter(v => !v.hidden).map(valueObj => {
-            data.forEach((el, index) => {
+        let newPoints = []
+        visibleValues.map((valueObj, vi) => {
+            data.forEach((point, index) => {
                 drawLine({
-                    point: el,
+                    point: point,
                     position: index,
-                    onHover:  onHover !== undefined ? points[onHover].value === el[valueObj.field] && points[onHover].axis === el[axis.field] : false,
+                    onHover: onHover?.axis === point[axis.field] && onHover.value === point[valueObj.field],
                     valueKey: valueObj.field,
                     valueColor: valueObj.hexColor,
-                    valueLabel: valueObj.label
+                    valueLabel: valueObj.label,
+                    newPoints: newPoints
                 })
             })
         })
+
+        if (points.length === 0 && newPoints.length > 0)
+            setPoints(newPoints)
     }
 
-    const handleMouseMove = (event) => {
-        const bBox = layerOne.canvas.parentNode.getBoundingClientRect()
 
+    useHover(layerTwo, points, (event) => {
         onHover({
             variant: 'line',
             ctx: layerTwo,
-            event: {
-                x: event.clientX - bBox.left,
-                y: event.clientY - bBox.top,
-                width: bBox.width,
-                height: bBox.height
-            },
+            event: event,
             points: points,
             drawChart: drawChart
         })
-    }
+    })
+
 
     useEffect(() => {
-        if(layerZero){
+        if (layerZero) {
             layerZero.clearAll()
             layerZero.defaultFont()
             drawGrid({
@@ -127,12 +126,6 @@ export default function useLineChart({
         if (layerOne) {
             layerOne.defaultFont()
             drawChart()
-        }
-        layerOne?.canvas.parentNode.addEventListener('mousemove', handleMouseMove)
-        layerOne?.canvas.parentNode.addEventListener('mouseout', handleMouseOut)
-        return () => {
-            layerOne?.canvas.parentNode.removeEventListener('mousemove', handleMouseMove)
-            layerOne?.canvas.parentNode.removeEventListener('mouseout', handleMouseOut)
         }
     }, [data, layerOne, width, height, theme, points])
 }

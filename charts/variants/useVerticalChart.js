@@ -4,6 +4,7 @@ import onHover from "../events/onHover";
 import useAsyncMemo from "../hooks/useAsyncMemo";
 import drawGrid from "../utils/drawGrid";
 import Bar from "../elements/Bar";
+import useHover from "../hooks/useHover";
 
 
 export default function useVerticalChart({
@@ -21,35 +22,25 @@ export default function useVerticalChart({
                                              height
                                          }) {
 
+    const visibleValues = useMemo(() => {
+        return values.filter(b => !b.hidden)
+    }, [values])
 
     const {layerZero, layerOne, layerTwo} = useMemo(() => {
         return {layerZero: getLayer(0), layerOne: getLayer(1), layerTwo: getLayer(2)}
     }, [width, height])
     let [bars, setBars] = useState([])
-
-    const handleMouseMove = (event) => {
-        const bBox = layerOne.canvas?.getBoundingClientRect()
+    useHover(layerTwo, points, (event) => {
         onHover({
             labelSpacing: labelSpacing,
             ctx: layerTwo,
-            event: {
-                x: event.clientX - bBox.left,
-                y: event.clientY - bBox.top,
-                width: bBox.width,
-                height: bBox.height
-            },
+            event:event,
             points: points,
-            drawChart: (onHover) => drawChart(onHover),
+            drawChart: drawChart,
             variant: 'vertical'
         })
-    }
+    })
 
-    const handleMouseOut = () => {
-        drawChart()
-    }
-    const valuesLength = useMemo(() => {
-        return values.filter(v => !v.hidden).length
-    }, [values])
     const dimensions = useAsyncMemo(() => {
         if (layerOne) {
             const length = data.length
@@ -76,7 +67,7 @@ export default function useVerticalChart({
                 width: dimensions.barWidth,
                 offset: dimensions.offset, height: height,
                 layer: layerZero,
-                valuesLength: valuesLength
+                valuesLength: visibleValues.length
             })
         }
     }, [width, height, layerZero, dimensions, values])
@@ -87,11 +78,11 @@ export default function useVerticalChart({
         let newPoints = [], newInstances = []
         data.forEach((point, index) => {
 
-            values.filter(v => !v.hidden).forEach((valueObj, vi) => {
+            visibleValues.forEach((valueObj, vi) => {
 
                 const pVariation = (point[valueObj.field] * 100) / biggest
-                const barW = (dimensions.barWidth) / valuesLength
-                const x = index * (dimensions.barWidth + dimensions.offset) + labelSpacing * 1.35 + (vi * (barW + dimensions.offset / (valuesLength * 2))) +  dimensions.offset / (valuesLength + 1)
+                const barW = (dimensions.barWidth) / visibleValues.length
+                const x = index * (dimensions.barWidth + dimensions.offset) + labelSpacing * 1.35 + (vi * (barW + dimensions.offset / (visibleValues.length * 2))) +  dimensions.offset / (visibleValues.length + 1)
                 const height = (pVariation * (layerOne.canvas.height - labelSpacing * 1.35)) / 100
                 const y = layerOne.canvas.height - height - labelSpacing
 
@@ -107,7 +98,7 @@ export default function useVerticalChart({
                     instance.y = y
                 }
 
-                instance.draw(layerOne, onHover && points[onHover].value === point[valueObj.field] && points[onHover].axis === point[axis.field])
+                instance.draw(layerOne, onHover?.axis === point[axis.field] && onHover.value === point[valueObj.field])
                 const newPoint = {
                     x: x,
                     y: y,
@@ -116,7 +107,7 @@ export default function useVerticalChart({
                     value: point[valueObj.field],
                     valueLabel: valueObj.label,
                     height: height,
-                    width: dimensions.barWidth / valuesLength,
+                    width: dimensions.barWidth / visibleValues.length,
                     color: valueObj.hexColor
 
                 }
@@ -134,13 +125,6 @@ export default function useVerticalChart({
         if (layerOne && dimensions !== undefined) {
             layerOne.defaultFont()
             drawChart()
-        }
-
-        layerOne?.canvas.parentNode.addEventListener('mousemove', handleMouseMove)
-        layerOne?.canvas.addEventListener('mouseout', handleMouseOut)
-        return () => {
-            layerOne?.canvas.parentNode.removeEventListener('mousemove', handleMouseMove)
-            layerOne?.canvas.removeEventListener('mouseout', handleMouseOut)
         }
     }, [data, layerOne, width, height, theme, dimensions, bars])
 

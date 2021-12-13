@@ -5,6 +5,7 @@ import useAsyncMemo from "../hooks/useAsyncMemo";
 import PropTypes from "prop-types";
 import drawGrid from "../utils/drawGrid";
 import Bar from "../elements/Bar";
+import useHover from "../hooks/useHover";
 
 
 export default function useHorizontalChart({
@@ -27,29 +28,21 @@ export default function useHorizontalChart({
     }, [width, height])
     let [bars, setBars] = useState([])
 
-    const handleMouseMove = (event) => {
-        const bBox = layerOne.canvas?.getBoundingClientRect()
+    useHover(layerTwo, points, (event) => {
         onHover({
             labelSpacing: labelSpacing,
             ctx: layerTwo,
-            event: {
-                x: event.clientX - bBox.left,
-                y: event.clientY - bBox.top,
-                width: bBox.width,
-                height: bBox.height
-            },
+            event: event,
             points: points,
             drawChart: (onHover) => drawChart(onHover),
             variant: 'horizontal'
         })
-    }
+    })
 
-    const handleMouseOut = () => {
-        drawChart()
-    }
-    const valuesLength = useMemo(() => {
-        return values.filter(v => !v.hidden).length
+    const visibleValues = useMemo(() => {
+        return values.filter(b => !b.hidden)
     }, [values])
+
     const dimensions = useAsyncMemo(() => {
         if (layerOne) {
             const length = data.length
@@ -78,38 +71,36 @@ export default function useHorizontalChart({
                 offset: dimensions.offset,
                 height: dimensions.barHeight,
                 layer: layerZero,
-                valuesLength: valuesLength
+                valuesLength: visibleValues.length
             })
         }
     }, [width, height, layerZero, dimensions, values])
 
     const drawChart = (onHover = undefined) => {
-        console.log(bars.length)
-
         layerOne.clearAll()
         let newPoints = [], newInstances = []
 
             data.forEach((point, index) => {
-                values.filter(v => !v.hidden).forEach((valueObj, vi) => {
+                visibleValues.forEach((valueObj, vi) => {
                 const pVariation = (point[valueObj.field] * 100) / biggest
                 const x = labelSpacing * 1.35
                 // const y = (index * Math.abs(dimensions.barHeight) + dimensions.offset * (index + vi))
                 const width = (pVariation * (layerOne.canvas.width - labelSpacing * 1.75)) / 100
-                const barH = (dimensions.barHeight) / valuesLength
-                const y = index * (dimensions.barHeight + dimensions.offset)  + (vi * (barH + dimensions.offset / (valuesLength * 2)))
-                const instance = bars.length === 0 ? new Bar('width', width, dimensions.barHeight / values.filter(v => !v.hidden).length, x, y, index, valueObj.hexColor,) : bars[vi + index]
+                const barH = (dimensions.barHeight) / visibleValues.length
+                const y = index * (dimensions.barHeight + dimensions.offset)  + (vi * (barH + dimensions.offset / (visibleValues.length * 2)))
+                const instance = bars.length === 0 ? new Bar('width', width, dimensions.barHeight / visibleValues.length, x, y, index, valueObj.hexColor,) : bars[vi + index]
 
                 if (bars.length === 0)
                     newInstances.push(instance)
                 else {
                     instance.width = width
                     instance.color = valueObj.hexColor
-                    instance.height = dimensions.barHeight / values.filter(v => !v.hidden).length
+                    instance.height = dimensions.barHeight / visibleValues.length
                     instance.x = x
                     instance.y = y
                 }
 
-                instance.draw(layerOne, onHover !== undefined && points[onHover].value === point[valueObj.field] && points[onHover].axis === point[axis.field])
+                instance.draw(layerOne, onHover?.axis === point[axis.field] && onHover.value === point[valueObj.field])
                 const newPoint = {
                     x: x - dimensions.offset,
                     y: y,
@@ -117,7 +108,7 @@ export default function useHorizontalChart({
                     axisLabel: axis.label,
                     value: point[valueObj.field],
                     valueLabel: valueObj.label,
-                    height: dimensions.barHeight / values.filter(v => !v.hidden).length,
+                    height: dimensions.barHeight / visibleValues.length,
                     width: width,
                     color: valueObj.hexColor
                 }
@@ -137,17 +128,9 @@ export default function useHorizontalChart({
             layerOne.defaultFont()
             drawChart()
         }
-
-        layerOne?.canvas.parentNode.addEventListener('mousemove', handleMouseMove)
-        layerOne?.canvas.addEventListener('mouseout', handleMouseOut)
-        return () => {
-            layerOne?.canvas.parentNode.removeEventListener('mousemove', handleMouseMove)
-            layerOne?.canvas.removeEventListener('mouseout', handleMouseOut)
-        }
     }, [data, layerOne, width, height, theme, dimensions, bars])
 
     useEffect(() => {
-
         setBars([])
         layerOne?.clearAll()
     }, [values])

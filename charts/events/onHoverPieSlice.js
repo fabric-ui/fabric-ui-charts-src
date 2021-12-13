@@ -42,7 +42,7 @@ export default function onHoverPieSlice({
                     placement,
                     () => {
                         ctx.clearAll()
-                        drawChart(i)
+                        drawChart({value: p.value, axis: p.axis})
                     }
                 )
                 // else

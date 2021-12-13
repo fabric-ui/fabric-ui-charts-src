@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import React, {useContext, useEffect, useMemo, useState} from "react";
-import DashboardContext from "./DashboardContext";
+import DashboardContext from "./DataContext";
 import shared from "./styles/Charts.module.css";
 import useLineChart from "./variants/useLineChart";
 import useVerticalChart from "./variants/useVerticalChart";

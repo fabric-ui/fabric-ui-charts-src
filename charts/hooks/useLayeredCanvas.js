@@ -7,7 +7,6 @@ import animateSlice from "../prototypes/slice";
 import arcEraser from "../prototypes/arcEraser";
 import polygon from "../prototypes/polygon";
 import animatedPolygon from "../prototypes/animatedPolygon";
-import animatedBar from "../prototypes/animatedBar";
 
 export default function useLayeredCanvas( fontColor) {
     const [layers, setLayers] = useState([])
@@ -45,7 +44,7 @@ export default function useLayeredCanvas( fontColor) {
             this.fillStyle = color
             this.font = "500 14px Roboto";
         }
-        CanvasRenderingContext2D.prototype.newBar = animatedBar
+
         CanvasRenderingContext2D.prototype.opacityTransition = transition
         CanvasRenderingContext2D.prototype.tooltip = tooltip
         CanvasRenderingContext2D.prototype.animateSlice = animateSlice
@@ -53,7 +52,6 @@ export default function useLayeredCanvas( fontColor) {
         CanvasRenderingContext2D.prototype.polygon = polygon
         CanvasRenderingContext2D.prototype.animatedPolygon = animatedPolygon
         CanvasRenderingContext2D.prototype.clearAll = function () {
-
             this.clearRect(0, 0, this.canvas.width, this.canvas.height)
         }
         CanvasRenderingContext2D.prototype.clearArc = function (cx, cy, radius, startAngle, endAngle) {

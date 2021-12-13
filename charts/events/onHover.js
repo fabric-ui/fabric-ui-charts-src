@@ -16,16 +16,16 @@ export default function onHover({
             }
             drawn = true
             // if (i === ctx.lastOnHover)
-                ctx.tooltip(
-                    p,
-                    'rgba(0,0,0,.75)',
-                    event,
-                    placement,
-                                    () => {
-                                        ctx.clearAll()
-                                        drawChart(i)
-                                    }
-                )
+            ctx.tooltip(
+                p,
+                'rgba(0,0,0,.75)',
+                event,
+                placement,
+                () => {
+                    ctx.clearAll()
+                    drawChart({value: p.value, axis: p.axis})
+                }
+            )
             // else
             //     ctx.opacityTransition(
             //         false,
