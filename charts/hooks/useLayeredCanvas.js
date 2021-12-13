@@ -3,10 +3,9 @@ import roundRect from "../prototypes/roundRect";
 
 import transition from "../prototypes/transition";
 import tooltip from "../prototypes/tooltip";
-import animateSlice from "../prototypes/slice";
 import arcEraser from "../prototypes/arcEraser";
 import polygon from "../prototypes/polygon";
-import animatedPolygon from "../prototypes/animatedPolygon";
+
 
 export default function useLayeredCanvas( fontColor) {
     const [layers, setLayers] = useState([])
@@ -47,10 +46,10 @@ export default function useLayeredCanvas( fontColor) {
 
         CanvasRenderingContext2D.prototype.opacityTransition = transition
         CanvasRenderingContext2D.prototype.tooltip = tooltip
-        CanvasRenderingContext2D.prototype.animateSlice = animateSlice
+
         CanvasRenderingContext2D.prototype.animatedArc = arcEraser
         CanvasRenderingContext2D.prototype.polygon = polygon
-        CanvasRenderingContext2D.prototype.animatedPolygon = animatedPolygon
+
         CanvasRenderingContext2D.prototype.clearAll = function () {
             this.clearRect(0, 0, this.canvas.width, this.canvas.height)
         }

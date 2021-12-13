@@ -73,13 +73,10 @@ export default function useVerticalChart({
     }, [width, height, layerZero, dimensions, values])
 
     const drawChart = (onHover = undefined) => {
-
         layerOne.clearAll()
         let newPoints = [], newInstances = []
         data.forEach((point, index) => {
-
             visibleValues.forEach((valueObj, vi) => {
-
                 const pVariation = (point[valueObj.field] * 100) / biggest
                 const barW = (dimensions.barWidth) / visibleValues.length
                 const x = index * (dimensions.barWidth + dimensions.offset) + labelSpacing * 1.35 + (vi * (barW + dimensions.offset / (visibleValues.length * 2))) +  dimensions.offset / (visibleValues.length + 1)

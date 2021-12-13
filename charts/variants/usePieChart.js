@@ -1,8 +1,10 @@
-import React, {useEffect, useMemo} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import useAsyncMemo from "../hooks/useAsyncMemo";
 import onHoverPieSlice from "../events/onHoverPieSlice";
 import PropTypes from "prop-types";
 import useHover from "../hooks/useHover";
+import Bar from "../elements/Bar";
+import Slice from "../elements/Slice";
 
 
 export default function usePieChart({
@@ -19,7 +21,7 @@ export default function usePieChart({
                                         width,
                                         height
                                     }) {
-
+    const [slices, setSlices] = useState([])
     const visibleValues = useMemo(() => {
         return values.filter(b => !b.hidden)
     }, [values])
@@ -59,10 +61,10 @@ export default function usePieChart({
 
     const drawChart = (onHover = undefined) => {
         layerOne.clearAll()
-
         const iteration = placement.radius / visibleValues.length
-        let currentRadius = placement.radius, newPoints = []
+        let newPoints = [], newInstances = [], currentRadius =placement.radius
         visibleValues.forEach((valueObj, vi) => {
+
             const filteredData = data.filter(e => e[valueObj.field] !== 0)
             let startAngle = 0
 
@@ -86,34 +88,36 @@ export default function usePieChart({
                     tooltipY: tooltipY + placement.cy,
                 }
 
-                if (points.length === 0)
-                    newPoints.push(newPoint)
-                layerOne.animateSlice(
-                    theme.themes.fabric_background_primary,
-                    newPoint,
-                    placement.cx,
-                    placement.cy,
-                    layerOne.animationEnded ? 0 : 500,
-                    currentRadius,
-                    onHover?.axis === point[axis.field] && onHover.value === point[valueObj.field],
-                    index + vi,
-                    () => {
-                        if (index === filteredData.length - 1 && vi === visibleValues.length - 1) {
-                            if (points.length === 0)
-                                setPoints(newPoints)
-                            if (variant === 'donut')
-                                layerOne.animatedArc(placement.cx, placement.cy, currentRadius * ratio, 0, Math.PI * 2, layerOne.donutAnimationEnded ? 0 : 500, () => layerOne.donutAnimationEnded = true)
+                const instance = slices.length === 0 ? new Slice(currentRadius, index, valueObj.hexColor, startAngle, endAngle, placement.cx, placement.cy) : slices[vi + index]
 
-                            layerOne.animationEnded = true
-                        }
+                if (slices.length === 0)
+                    newInstances.push(instance)
+                else {
 
-                    })
+                    instance.radius = placement.radius
+                    instance.cx = placement.cx
+                    instance.cy = placement.cy
+                    instance.startAngle = startAngle
+                    instance.endAngle = endAngle
+                }
+
+                instance.draw(layerOne, onHover && onHover?.axis === point[axis.field] && onHover.value === point[valueObj.field], theme.themes.fabric_background_primary, () => {
+                    if (index === filteredData.length - 1 && vi === visibleValues.length - 1) {
+                        if (variant === 'donut')
+                            layerOne.animatedArc(placement.cx, placement.cy, currentRadius * ratio, 0, Math.PI * 2, instance.donutAnimationEnded ? 0 : 500, () => instance.donutAnimationEnded = true)
+                    }
+                })
                 startAngle = endAngle
+                newPoints.push(newPoint)
 
             })
-
             currentRadius = currentRadius - iteration > 0 ? currentRadius - iteration : iteration
         })
+
+        if (points.length === 0)
+            setPoints(newPoints)
+        if (slices.length === 0)
+            setSlices(newInstances)
     }
 
     useEffect(() => {
@@ -122,8 +126,12 @@ export default function usePieChart({
             drawChart()
         }
 
-    }, [totals, layerOne, width, height, theme, placement])
+    }, [totals, layerOne, width, height, theme, placement, slices])
 
+    useEffect(() => {
+        setSlices([])
+        layerOne?.clearAll()
+    }, [values])
 }
 
 
