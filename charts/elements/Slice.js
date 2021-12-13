@@ -17,7 +17,7 @@ export default class Slice {
         this.color = color
         this.notHoveredColor = hexToRgba(color, .75)
     }
-    hover(ctx, strokeStyle){
+    animationQueue(ctx, strokeStyle){
 
     }
     draw(ctx, onHover = false, strokeStyle, onAnimationEnd) {
