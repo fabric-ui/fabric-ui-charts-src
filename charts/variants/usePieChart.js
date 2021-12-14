@@ -39,7 +39,7 @@ export default function usePieChart({
             ctx: layerTwo,
             event: event,
             points: points,
-            drawChart: drawChart,
+            drawChart: i => drawChart(i, true),
             placement: placement,
             variant: variant,
             ratioRadius: (variant === 'donut' ? (placement.radius * ratio / (visibleValues.length)) : placement.radius)
@@ -57,18 +57,17 @@ export default function usePieChart({
             return undefined
     }, [width, height])
 
-
-
-    const drawChart = (onHover = undefined) => {
-        layerOne.clearAll()
+    let lastOnHover
+    const drawChart = (onHover = undefined, isMouseEvent=false) => {
+        // layerOne.clearAll()
         const iteration = placement.radius / visibleValues.length
-        let newPoints = [], newInstances = [], currentRadius =placement.radius
+        let newPoints = [], newInstances = [], currentRadius = placement.radius
         visibleValues.forEach((valueObj, vi) => {
 
             const filteredData = data.filter(e => e[valueObj.field] !== 0)
             let startAngle = 0
 
-            layerOne.clearArc(placement.cx, placement.cy, currentRadius, 0, Math.PI * 2)
+            // layerOne.clearArc(placement.cx, placement.cy, currentRadius, 0, Math.PI * 2)
             filteredData.forEach((point, index) => {
                 let tooltipY, tooltipX, endAngle = (point[valueObj.field] / totals[vi]) * (Math.PI * 2) + startAngle
                 const r = ((currentRadius) / 2)
@@ -88,7 +87,7 @@ export default function usePieChart({
                     tooltipY: tooltipY + placement.cy,
                 }
 
-                const instance = slices.length === 0 ? new Slice(currentRadius, index, valueObj.hexColor, startAngle, endAngle, placement.cx, placement.cy) : slices[vi + index]
+                const instance = slices.length === 0 ? new Slice(currentRadius, index, valueObj.hexColor, startAngle, endAngle, placement.cx, placement.cy, layerOne, theme.themes.fabric_background_primary) : slices[vi + index]
 
                 if (slices.length === 0)
                     newInstances.push(instance)
@@ -100,13 +99,28 @@ export default function usePieChart({
                     instance.startAngle = startAngle
                     instance.endAngle = endAngle
                 }
+                const isOnHover = onHover && onHover?.axis === point[axis.field] && onHover.value === point[valueObj.field]
 
-                instance.draw(layerOne, onHover && onHover?.axis === point[axis.field] && onHover.value === point[valueObj.field], theme.themes.fabric_background_primary, () => {
-                    if (index === filteredData.length - 1 && vi === visibleValues.length - 1) {
-                        if (variant === 'donut')
-                            layerOne.animatedArc(placement.cx, placement.cy, currentRadius * ratio, 0, Math.PI * 2, instance.donutAnimationEnded ? 0 : 500, () => instance.donutAnimationEnded = true)
+                if(isMouseEvent) {
+                    const isLastOnHover = lastOnHover && lastOnHover?.axis === point[axis.field] && lastOnHover.value === point[valueObj.field]
+                    if(isLastOnHover && !isOnHover || isOnHover) {
+                        instance.animationListener({type: isOnHover ? 'hover' : 'hover-end', timestamp: 250})
+                        lastOnHover =  onHover
                     }
-                })
+
+                }
+                else if(!isMouseEvent) {
+                    instance.animationListener({type: 'init', timestamp: 500})
+
+                }
+
+
+                    //     , () => {
+                    //     if (index === filteredData.length - 1 && vi === visibleValues.length - 1) {
+                    //         if (variant === 'donut')
+                    //             layerOne.animatedArc(placement.cx, placement.cy, currentRadius * ratio, 0, Math.PI * 2, instance.donutAnimationEnded ? 0 : 500, () => instance.donutAnimationEnded = true)
+                    //     }
+                    // }
                 startAngle = endAngle
                 newPoints.push(newPoint)
 
@@ -126,7 +140,7 @@ export default function usePieChart({
             drawChart()
         }
 
-    }, [totals, layerOne, width, height, theme, placement, slices])
+    }, [totals, layerOne, width, height, theme, placement])
 
     useEffect(() => {
         setSlices([])

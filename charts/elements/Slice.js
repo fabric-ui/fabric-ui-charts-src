@@ -3,79 +3,169 @@ import getEase from "../utils/getEase";
 
 export default class Slice {
     animated = false
-    animationStarted = false
+    endedHover = true
     wasHovered = false
 
-    constructor(radius, index, color, startAngle, endAngle, cx, cy) {
+    constructor(radius, index, color, startAngle, endAngle, cx, cy, ctx, strokeStyle) {
         this.radius = radius
         this.startAngle = startAngle
         this.endAngle = endAngle
         this.cx = cx
         this.cy = cy
 
+        this.ctx = ctx
         this.index = index
         this.color = color
-        this.notHoveredColor = hexToRgba(color, .75)
+
+        this.strokeStyle = strokeStyle
     }
-    animationQueue(ctx, strokeStyle){
 
+    animationQueue = []
+
+    animationListener(newAnimation) {
+        // console.log('HERE')
+        const before = this.getLastQueue()
+        const isExit = newAnimation.type === 'hover' && !this.endedHover
+
+        if (before === null || (before.type !== newAnimation.type && !isExit)) {
+            console.log(before?.type, newAnimation.type)
+            this.animationQueue.push({...newAnimation, isExecuting: false})
+            const lastOnExecution = this.isExecutingAnimation()
+
+            if (!lastOnExecution)
+                this.execAnimation(this.getQueue())
+        }
     }
-    draw(ctx, onHover = false, strokeStyle, onAnimationEnd) {
 
-        if ((!this.animationStarted && !this.animated || this.animated && this.animationStarted)) {
-            this.animationStarted = true
-            const timestamp = this.animated ? 0 : 500
-            let currentRadius = this.animated ? this.radius : 0
-            let start, previousTimeStamp,
-                targetTimestamp = timestamp === 0 ? 0 : timestamp + this.index * 50
-            ctx.clearArc(this.cx, this.cy, this.radius * 100, this.startAngle, this.endAngle)
+    isExecutingAnimation() {
+        const q = this.getQueue()
 
-            const d = (elapsed) => {
-                ctx.clearArc(this.cx, this.cy, this.radius * 100, this.startAngle, this.endAngle)
-                ctx.lineWidth = 2
-                ctx.strokeStyle = strokeStyle
+        return !!(q !== null && q.isExecuting);
+    }
 
-                this.wasHovered = false
-                ctx.beginPath()
-                ctx.moveTo(this.cx, this.cy)
-                ctx.arc(this.cx, this.cy, currentRadius, this.startAngle, this.endAngle, false)
-                ctx.lineTo(this.cx, this.cy)
+    getQueue() {
+        return this.animationQueue.length > 0 ? {
+            ...this.animationQueue[0], index: this.animationQueue.length - 1
+        } : null
+    }
 
-                ctx.fillStyle = onHover ? this.notHoveredColor : this.color
-                ctx.fill()
-                ctx.stroke()
-                ctx.closePath()
+    getLastQueue() {
+        return this.animationQueue.length > 0 ? this.animationQueue[this.animationQueue.length - 1] : null
+    }
+
+    execAnimation({type, timestamp, index}) {
+
+        let next = this.getQueue()
+        if (next.index === index) {
+            next = null
+        }
 
 
-                currentRadius = getEase(elapsed, 0, this.radius, targetTimestamp, 5)
+        if (index > -1)
+            this.animationQueue[index] = {...this.animationQueue[index], isExecuting: true}
+        // EXEC
+        switch (type) {
+            case 'hover': {
+                if (this.endedHover) {
 
-                if (elapsed === -1) {
-                    this.animated = true
-                }
+
+                    this.draw(() => {
+                            // console.log('Before', this.animationQueue.length)
+                            this.animationQueue.splice(index, 1)
+                            // console.log('After', this.animationQueue.length)
+                            if (next !== null)
+                                this.execAnimation(next)
+
+                            this.endedHover = false
+                        },
+                        this.radius,
+                        this.radius * .1, timestamp)
+                } else
+                    this.animationQueue.splice(index, 1)
+                break
             }
-            const step = (t) => {
-                if (start === undefined)
-                    start = t;
-                const elapsed = t - start;
-                if (previousTimeStamp !== t) {
-                    d(elapsed)
-                }
-                if (targetTimestamp > elapsed) {
-                    previousTimeStamp = t
-                    requestAnimationFrame(step);
-                } else {
-                    currentRadius = this.radius
-                    d(-1)
-                    onAnimationEnd()
-                }
+            case 'hover-end': {
+                console.log('EXIT')
+
+                this.draw(() => {
+                        this.animationQueue.splice(index, 1)
+                        if (next !== null)
+                            this.execAnimation(next)
+                        this.endedHover = true
+
+                    },
+                    0,
+                    this.radius, timestamp, true)
+
+                break
             }
-            if (targetTimestamp > 0)
-                requestAnimationFrame(step)
-            else {
-                currentRadius = this.radius
+            case 'init': {
+
+                this.draw(() => {
+
+                    this.animationQueue.splice(index, 1)
+
+                    if (next !== null)
+                        this.execAnimation(next)
+                }, 0, this.radius, timestamp)
+
+                break
+            }
+            default: {
+                break
+            }
+        }
+        // EXEC
+    }
+
+
+    draw(onAnimationEnd, initialRadius, finalRadius, timestamp, isBackwards) {
+
+        let start, previousTimeStamp,
+            targetTimestamp = timestamp === 0 ? 0 : timestamp + this.index * 50,
+            increment = isBackwards ? (finalRadius - initialRadius) / timestamp : null,
+            currentRadius = isBackwards ? finalRadius : initialRadius
+
+        const d = (elapsed) => {
+            this.ctx.clearArc(this.cx, this.cy, this.radius * 100, this.startAngle, this.endAngle)
+            this.ctx.lineWidth = 2
+            this.ctx.strokeStyle = this.strokeStyle
+            this.wasHovered = false
+            this.ctx.beginPath()
+            this.ctx.moveTo(this.cx, this.cy)
+            this.ctx.arc(this.cx, this.cy, currentRadius, this.startAngle, this.endAngle, false)
+            this.ctx.lineTo(this.cx, this.cy)
+
+            this.ctx.fillStyle = this.color
+            this.ctx.fill()
+            this.ctx.stroke()
+            this.ctx.closePath()
+
+
+            currentRadius = isBackwards ? currentRadius + increment : getEase(elapsed, initialRadius, finalRadius, targetTimestamp, 5)
+        }
+        const step = (t) => {
+            if (start === undefined)
+                start = t;
+            const elapsed = t - start;
+            if (previousTimeStamp !== t) {
+                d(elapsed)
+            }
+            if (targetTimestamp > elapsed) {
+                previousTimeStamp = t
+                requestAnimationFrame(step);
+            } else {
+                currentRadius = finalRadius
                 d(-1)
                 onAnimationEnd()
             }
+        }
+        if (targetTimestamp > 0)
+            requestAnimationFrame(step)
+        else {
+            currentRadius = finalRadius
+            d(-1)
+            onAnimationEnd()
         }
     }
 }
