@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useContext, useEffect, useState} from "react";
 import roundRect from "../prototypes/roundRect";
 
 import transition from "../prototypes/transition";
@@ -6,6 +6,7 @@ import tooltip from "../prototypes/tooltip";
 import arcEraser from "../prototypes/arcEraser";
 import polygon from "../prototypes/polygon";
 import randomColor from "../utils/randomColor";
+import ThemeContext from "../../../core/misc/context/ThemeContext";
 
 
 export default function useLayeredCanvas( fontColor) {
@@ -38,8 +39,9 @@ export default function useLayeredCanvas( fontColor) {
             l.canvas.height = target.offsetHeight
         })
     }
-
+    const theme = useContext(ThemeContext)
     useEffect(() => {
+        CanvasRenderingContext2D.prototype.getThemes = () => theme.themes
         CanvasRenderingContext2D.prototype.roundRect = roundRect
         CanvasRenderingContext2D.prototype.defaultFont = function (color = fontColor) {
             this.fillStyle = color
@@ -59,7 +61,7 @@ export default function useLayeredCanvas( fontColor) {
             this.save();
             this.globalCompositeOperation = 'destination-out';
             this.beginPath();
-            this.fillStyle = this.baseFontColor
+            this.fillStyle = this.getThemes().fabric_background_primary
             this.moveTo(cx, cy)
             this.arc(cx, cy, radius, startAngle, endAngle, false);
 

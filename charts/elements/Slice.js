@@ -4,82 +4,66 @@ import hexToRgba from "../utils/hexToRgba";
 export default class Slice {
     animated = false
 
-    constructor(radius, index, color, startAngle, endAngle, cx, cy, ctx, strokeStyle) {
+    constructor(radius, index, color, startAngle, endAngle, cx, cy, ctx, data) {
         this.radius = radius
         this.startAngle = startAngle
         this.endAngle = endAngle
         this.cx = cx
         this.cy = cy
 
+
+        this.data = data
         this.ctx = ctx
         this.index = index
         this.color = color
 
-        this.strokeStyle = strokeStyle
+        this.strokeStyle = ctx.getThemes().fabric_background_primary
+
     }
 
-    animationListener({type}) {
-        switch (type) {
-            case 'hover': {
-                if (this.endedHover) {
-                    this.endedHover = false
-                    this.draw(this.color, this.radius)
-                }
-                break
-            }
-            case 'hover-end': {
-                this.draw(hexToRgba(this.color, 0.75), this.radius)
-                this.endedHover = true
-                this.ctx.lineWidth = 2
-                this.ctx.strokeStyle = this.strokeStyle
+    hover() {
+        this.endedHover = false
 
-                break
-            }
-            case 'init': {
-                this.init(() => {}, 0, this.radius, 500)
-                break
-            }
-            case 'update': {
-                this.draw(hexToRgba(this.color, 0.75), this.radius)
-                break
-            }
-            default: {
-                break
-            }
-        }
+        this.draw(this.color, this.radius,  this.ctx.getThemes().fabric_border_secondary)
     }
 
+    hoverEnd() {
+        this.draw(hexToRgba(this.color, 0.75), this.radius)
+        this.endedHover = true
+    }
 
-    draw(color, radius){
-        this.ctx.clearArc(this.cx, this.cy, this.radius, this.startAngle, this.endAngle)
+    draw(color, radius, strokeStyle=this.strokeStyle) {
+        this.ctx.clearArc(this.cx, this.cy, this.radius * 1.01, this.startAngle, this.endAngle)
 
         this.ctx.fillStyle = color
 
         this.ctx.lineWidth = 2
 
-        this.ctx.strokeStyle = this.strokeStyle
+        this.ctx.strokeStyle = strokeStyle
 
 
         this.ctx.beginPath()
         this.ctx.moveTo(this.cx, this.cy)
         this.ctx.arc(this.cx, this.cy, radius, this.startAngle, this.endAngle, false)
         this.ctx.lineTo(this.cx, this.cy)
-        this.ctx.closePath()
-
         this.ctx.fill()
         this.ctx.stroke()
+        this.ctx.closePath()
+
+
     }
 
-    init(onAnimationEnd, initialRadius, finalRadius, timestamp, isBackwards) {
+    init(ts) {
         this.endedHover = true
         this.animated = true
+
         let start, previousTimeStamp,
-            targetTimestamp = timestamp === 0 ? 0 : timestamp + this.index * 50,
-            currentRadius = initialRadius
+            targetTimestamp = ts === 0 ? 0 : 500 + this.index * 50,
+            currentRadius = 0
 
         const d = (elapsed) => {
             this.draw(hexToRgba(this.color, 0.75), currentRadius)
-            currentRadius = getEase(isBackwards ? timestamp - elapsed : elapsed, initialRadius, isBackwards ? initialRadius - finalRadius : finalRadius, targetTimestamp, 5)
+            currentRadius = getEase(elapsed, 0, this.radius, targetTimestamp, 5)
         }
         const step = (t) => {
             if (start === undefined)
@@ -89,22 +73,19 @@ export default class Slice {
             if (previousTimeStamp !== t) {
                 d(elapsed)
             }
-            if (timestamp > elapsed) {
+            if (targetTimestamp > elapsed) {
                 previousTimeStamp = t
                 requestAnimationFrame(step);
             } else {
-                currentRadius = finalRadius
+                currentRadius = this.radius
                 d(-1)
-                onAnimationEnd()
-
             }
         }
         if (targetTimestamp > 0)
             requestAnimationFrame(step)
         else {
-            currentRadius = finalRadius
+            currentRadius = this.radius
             d(-1)
-            onAnimationEnd()
         }
     }
 }

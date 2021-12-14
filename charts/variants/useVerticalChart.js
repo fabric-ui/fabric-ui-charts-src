@@ -13,7 +13,6 @@ export default function useVerticalChart({
                                              values,
                                              points,
                                              setPoints,
-                                             theme,
                                              getLayer,
                                              data,
                                              axis,
@@ -56,13 +55,13 @@ export default function useVerticalChart({
             layerZero.defaultFont()
             layerZero.clearAll()
             drawGrid({
-                strokeStyle: theme.themes.fabric_border_secondary,
+                strokeStyle: layerOne.getThemes().fabric_border_secondary,
                 variant: 'vertical',
                 iterations: iterations,
                 labelPadding: labelSpacing,
                 data: data,
                 element: layerOne.canvas,
-                color: theme.themes.fabric_color_quaternary,
+                color: layerOne.getThemes().fabric_color_quaternary,
                 axisKey: axis.field,
                 width: dimensions.barWidth,
                 offset: dimensions.offset, height: height,
@@ -123,7 +122,7 @@ export default function useVerticalChart({
             layerOne.defaultFont()
             drawChart()
         }
-    }, [data, layerOne, width, height, theme, dimensions, bars])
+    }, [data, layerOne, width, height, dimensions, bars])
 
     useEffect(() => {
         setBars([])

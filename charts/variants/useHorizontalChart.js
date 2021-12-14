@@ -14,7 +14,7 @@ export default function useHorizontalChart({
                                                values,
                                                points,
                                                setPoints,
-                                               theme,
+
                                                getLayer,
                                                data,
                                                axis,
@@ -59,13 +59,13 @@ export default function useHorizontalChart({
             layerZero.defaultFont()
             layerZero.clearAll()
             drawGrid({
-                strokeStyle: theme.themes.fabric_border_secondary,
+                strokeStyle: layerOne.getThemes().fabric_border_secondary,
                 variant: 'horizontal',
                 iterations: iterations,
                 labelPadding: labelSpacing,
                 data: data,
                 element: layerOne.canvas,
-                color: theme.themes.fabric_color_quaternary,
+                color: layerOne.getThemes().fabric_color_quaternary,
                 axisKey: axis.field,
                 width: width,
                 offset: dimensions.offset,
@@ -128,7 +128,7 @@ export default function useHorizontalChart({
             layerOne.defaultFont()
             drawChart()
         }
-    }, [data, layerOne, width, height, theme, dimensions, bars])
+    }, [data, layerOne, width, height, dimensions, bars])
 
     useEffect(() => {
         setBars([])

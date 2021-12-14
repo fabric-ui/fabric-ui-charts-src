@@ -9,7 +9,6 @@ export default function useLineChart({
                                          biggest,
                                          points,
                                          setPoints,
-                                         theme,
                                          getLayer,
                                          data,
                                          axis,
@@ -109,12 +108,12 @@ export default function useLineChart({
             layerZero.defaultFont()
             drawGrid({
                 layer: layerZero,
-                strokeStyle: theme.themes.fabric_border_secondary,
+                strokeStyle: layerOne.getThemes().fabric_border_secondary,
                 variant: 'line',
                 iterations: iterations,
                 labelPadding: labelSpacing,
                 data: data,
-                color: theme.themes.fabric_color_quaternary,
+                color: layerOne.getThemes().fabric_color_quaternary,
                 axisKey: axis.field,
                 width: ((layerZero.canvas.width - labelSpacing * 1.35) / (data.length)),
                 offset: 0
@@ -127,5 +126,5 @@ export default function useLineChart({
             layerOne.defaultFont()
             drawChart()
         }
-    }, [data, layerOne, width, height, theme, points])
+    }, [data, layerOne, width, height, points])
 }

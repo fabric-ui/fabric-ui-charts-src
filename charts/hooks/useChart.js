@@ -26,9 +26,9 @@ const getIterationCandidate = (data, valueKey, variant, height, width) => {
 }
 export default function useChart({data, values, variant, layers}) {
     const [points, setPoints] = useState([])
-    const theme = useContext(ThemeContext)
+
     const wrapperRef = useRef()
-    const {newLayer, layer, contextLayers, updateDimensions} = useLayeredCanvas(wrapperRef.current, theme.themes.fabric_color_tertiary)
+    const {newLayer, layer, contextLayers, updateDimensions} = useLayeredCanvas(wrapperRef.current)
     const {width, height} = useDimensions(wrapperRef.current)
 
     const totals = useMemo(() => {
@@ -59,8 +59,6 @@ export default function useChart({data, values, variant, layers}) {
         if (contextLayers === 0) {
             for (let i = 0; i < layers; i++)
                 newLayer(wrapperRef.current)
-
-            CanvasRenderingContext2D.prototype.baseFontColor = theme.themes.fabric_background_primary
         }
         if (points.length > 0) {
             setPoints([])
@@ -70,7 +68,7 @@ export default function useChart({data, values, variant, layers}) {
     return {
         iterations, biggest, totals,
         points, setPoints,
-        wrapperRef, theme,
+        wrapperRef,
         labelSpacing: padding + 3,
         getLayer: layer,
         width, height, newLayer: () => {

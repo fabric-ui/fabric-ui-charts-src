@@ -13,7 +13,7 @@ export default function onHoverPieSlice({
     const calculatedEvent = (event.x - placement.cx) ** 2 + (event.y - placement.cy) ** 2
 
     points.forEach((p, i) => {
-        const isInsideSlice = (calculatedEvent < p.radius ** 2) && (variant === 'donut' && calculatedEvent > ratioRadius ** 2 || variant !== 'donut')
+        const isInsideSlice = (calculatedEvent < p.radius ** 2) && (calculatedEvent > p.toRemoveRadius ** 2)
 
         if (isInsideSlice) {
             drawn = true
@@ -42,7 +42,7 @@ export default function onHoverPieSlice({
                     placement,
                     () => {
                         ctx.clearAll()
-                        drawChart({value: p.value, axis: p.axis})
+                        drawChart(p)
                     }
                 )
                 // else

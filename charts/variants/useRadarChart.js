@@ -15,7 +15,6 @@ export default function useRadarChart({
                                           totals,
                                           points,
                                           setPoints,
-                                          theme,
                                           getLayer,
                                           data,
                                           axis,
@@ -104,7 +103,7 @@ export default function useRadarChart({
                 let currentStep = index * step + shift;
                 const px = placement.cx + (placement.radius * 1.1) * Math.cos(currentStep),
                     py = placement.cy + (placement.radius * 1.1 - 4) * Math.sin(currentStep)
-                layerZero.fillStyle = theme.themes.fabric_color_tertiary
+                layerZero.fillStyle = layerOne.getThemes().fabric_color_tertiary
 
                 layerZero.font = "500 12px Roboto"
                 layerZero.fillText(d[axis.field], px - d[axis.field].length * 4, py + 4)
@@ -112,7 +111,7 @@ export default function useRadarChart({
 
             layerZero.lineWidth = 1
             runIncrement((currentIncrement, i) => {
-                layerZero.polygon(theme.themes.fabric_border_secondary, data.length, placement.cx, placement.cy, currentIncrement, i === iterations.length - 1)
+                layerZero.polygon(layerOne.getThemes().fabric_border_secondary, data.length, placement.cx, placement.cy, currentIncrement, i === iterations.length - 1)
             })
             runIncrement((currentIncrement, i) => {
                 if (i > 0) {
@@ -120,10 +119,10 @@ export default function useRadarChart({
                     const px = placement.cx - value.length * 3.5, py = placement.cy - currentIncrement + 8
 
                     layerZero.font = "600 12px Roboto"
-                    layerZero.fillStyle = theme.themes.fabric_background_primary
+                    layerZero.fillStyle = layerOne.getThemes().fabric_background_primary
                     layerZero.fillRect(px - value.length, py - 11, value.length * 10, 14)
 
-                    layerZero.fillStyle = theme.themes.fabric_color_tertiary
+                    layerZero.fillStyle = layerOne.getThemes().fabric_color_tertiary
                     layerZero.fillText(value, px, py)
                 }
             })
@@ -135,6 +134,6 @@ export default function useRadarChart({
             layerOne?.defaultFont()
             drawChart()
         }
-    }, [totals, theme, width, height, placement])
+    }, [totals, width, height, placement])
 
 }
