@@ -52,20 +52,15 @@
     gap: 8px;
 }
 
-.button {
-    border: var(--fabric-border-primary) 1px solid;
-    background-color: var(--fabric-background-primary);
-    /*border-radius: 3px;*/
-    /*padding-left: 0;*/
-    height: 35px;
-}
-
 
 
 .datasets {
+/*background: red;*/
     display: flex;
     gap: 16px;
     align-items: center;
+
+    justify-content: flex-start;
 }
 .datasetLabel{
     font-weight:  normal;
@@ -78,11 +73,13 @@
 }
 .datasetWrapper{
     height: fit-content;
-    padding: 0;
+    padding: 4px !important;
 
     display: flex;
     align-items: center;
     gap: 4px;
+
+
 }
 
 .datasetIndicator{

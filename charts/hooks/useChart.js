@@ -73,6 +73,9 @@ export default function useChart({data, values, variant, layers}) {
         wrapperRef, theme,
         labelSpacing: padding + 3,
         getLayer: layer,
-        width, height
+        width, height, newLayer: () => {
+            console.log(wrapperRef.current)
+            return newLayer(wrapperRef.current)
+        }
     }
 }

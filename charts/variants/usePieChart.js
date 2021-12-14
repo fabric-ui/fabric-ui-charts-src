@@ -3,8 +3,8 @@ import useAsyncMemo from "../hooks/useAsyncMemo";
 import onHoverPieSlice from "../events/onHoverPieSlice";
 import PropTypes from "prop-types";
 import useHover from "../hooks/useHover";
-import Bar from "../elements/Bar";
 import Slice from "../elements/Slice";
+import randomColor from "../utils/randomColor";
 
 
 export default function usePieChart({
@@ -19,17 +19,26 @@ export default function usePieChart({
                                         axis,
                                         values,
                                         width,
-                                        height
+                                        height,newLayer
                                     }) {
+    let lastOnHover
     const [slices, setSlices] = useState([])
     const visibleValues = useMemo(() => {
         return values.filter(b => !b.hidden)
     }, [values])
 
     const {layerOne, layerTwo} = useMemo(() => {
-        return {layerOne: getLayer(1), layerTwo: getLayer(2)}
+        return {layerOne: getLayer(0), layerTwo: getLayer(2)}
     }, [width, height])
+    const visualLayers = useAsyncMemo(() => {
+        let r = []
+        values.forEach((_, i) => {
+            newLayer()
+            r.push(getLayer(i))
+        })
 
+        return r
+    }, [values])
     const ratio = useMemo(() => {
         return (donutRatio ? donutRatio : .7)
     }, [donutRatio])
@@ -39,12 +48,15 @@ export default function usePieChart({
             ctx: layerTwo,
             event: event,
             points: points,
-            drawChart: i => drawChart(i, true),
+            drawChart: i => {
+                if (lastOnHover || i)
+                    drawChart(i, true)
+            },
             placement: placement,
             variant: variant,
             ratioRadius: (variant === 'donut' ? (placement.radius * ratio / (visibleValues.length)) : placement.radius)
         })
-    })
+    }, [slices])
 
     const placement = useAsyncMemo(() => {
         if (width !== undefined && height !== undefined) {
@@ -56,76 +68,88 @@ export default function usePieChart({
         } else
             return undefined
     }, [width, height])
+    const coloredData = useMemo(() => {
+        return data.map(d => {
+            return {data: d, color: randomColor()}
+        })
+    }, [data])
 
-    let lastOnHover
-    const drawChart = (onHover = undefined, isMouseEvent=false) => {
-        // layerOne.clearAll()
+    const drawChart = (onHover = undefined, isMouseEvent = false) => {
+
         const iteration = placement.radius / visibleValues.length
         let newPoints = [], newInstances = [], currentRadius = placement.radius
         visibleValues.forEach((valueObj, vi) => {
-
-            const filteredData = data.filter(e => e[valueObj.field] !== 0)
+            const filteredData = coloredData.filter(e => e.data[valueObj.field] !== 0)
             let startAngle = 0
+            const layer = visualLayers[vi]
+            if(layer) {
+                filteredData.forEach((point, index) => {
+                    let instance
+                    if (!isMouseEvent || points.length === 0 || slices.length === 0) {
+                        let tooltipY, tooltipX,
+                            endAngle = (point.data[valueObj.field] / totals[vi]) * (Math.PI * 2) + startAngle
+                        const r = ((currentRadius) / 2)
 
-            // layerOne.clearArc(placement.cx, placement.cy, currentRadius, 0, Math.PI * 2)
-            filteredData.forEach((point, index) => {
-                let tooltipY, tooltipX, endAngle = (point[valueObj.field] / totals[vi]) * (Math.PI * 2) + startAngle
-                const r = ((currentRadius) / 2)
+                        tooltipY = Math.sin((startAngle + endAngle) / 2) * r * 1.5
+                        tooltipX = Math.cos((startAngle + endAngle) / 2) * r * 1.5
 
-                tooltipY = Math.sin((startAngle + endAngle) / 2) * r * 1.5
-                tooltipX = Math.cos((startAngle + endAngle) / 2) * r * 1.5
+                        const newPoint = {
+                            value: point.data[valueObj.field],
+                            color: point.color,
+                            startAngle: startAngle,
+                            endAngle: endAngle,
+                            valueLabel: valueObj.label,
+                            axis: point.data[axis.field],
+                            radius: currentRadius,
+                            tooltipX: tooltipX + placement.cx,
+                            tooltipY: tooltipY + placement.cy,
+                            valueIndex: vi
+                        }
 
-                const newPoint = {
-                    value: point[valueObj.field],
-                    color: valueObj.hexColor,
-                    startAngle: startAngle,
-                    endAngle: endAngle,
-                    valueLabel: valueObj.label,
-                    axis: point[axis.field],
-                    radius: currentRadius,
-                    tooltipX: tooltipX + placement.cx,
-                    tooltipY: tooltipY + placement.cy,
-                }
+                        instance = slices.length === 0 || slices[vi + index] ? new Slice(currentRadius, index, point.color, startAngle, endAngle, placement.cx, placement.cy, layer, theme.themes.fabric_background_primary) : slices[vi + index]
 
-                const instance = slices.length === 0 ? new Slice(currentRadius, index, valueObj.hexColor, startAngle, endAngle, placement.cx, placement.cy, layerOne, theme.themes.fabric_background_primary) : slices[vi + index]
+                        if (slices.length === 0) {
+                            newInstances.push(instance)
+                        } else {
 
-                if (slices.length === 0)
-                    newInstances.push(instance)
-                else {
+                            instance.radius = currentRadius
+                            instance.cx = placement.cx
+                            instance.cy = placement.cy
+                            instance.startAngle = startAngle
+                            instance.endAngle = endAngle
+                        }
 
-                    instance.radius = placement.radius
-                    instance.cx = placement.cx
-                    instance.cy = placement.cy
-                    instance.startAngle = startAngle
-                    instance.endAngle = endAngle
-                }
-                const isOnHover = onHover && onHover?.axis === point[axis.field] && onHover.value === point[valueObj.field]
+                        startAngle = endAngle
+                        newPoints.push(newPoint)
 
-                if(isMouseEvent) {
-                    const isLastOnHover = lastOnHover && lastOnHover?.axis === point[axis.field] && lastOnHover.value === point[valueObj.field]
-                    if(isLastOnHover && !isOnHover || isOnHover) {
-                        instance.animationListener({type: isOnHover ? 'hover' : 'hover-end', timestamp: 250})
-                        lastOnHover =  onHover
+                    } else
+                        instance = slices[vi + index]
+
+                    if (isMouseEvent) {
+
+                        const isOnHover = onHover && onHover?.axis === point.data[axis.field] && onHover.value === point.data[valueObj.field]
+                        if (isOnHover) {
+                            instance.animationListener({type: 'hover', timestamp: 250})
+
+                            lastOnHover = {...onHover, valueIndex: vi}
+                        } else if (!instance.endedHover)
+                            instance.animationListener({type: 'hover-end', timestamp: 250})
+
+
+                    } else if (!isMouseEvent || points.length === 0 || slices.length === 0) {
+                        console.log('U')
+                        instance.animationListener({type: 'init', timestamp: 500})
                     }
+                })
 
-                }
-                else if(!isMouseEvent) {
-                    instance.animationListener({type: 'init', timestamp: 500})
-
-                }
+                layer.clearArc(placement.cx, placement.cy, currentRadius - iteration, 0, Math.PI * 2)
+                currentRadius = currentRadius - iteration > 0 ? currentRadius - iteration : iteration
 
 
-                    //     , () => {
-                    //     if (index === filteredData.length - 1 && vi === visibleValues.length - 1) {
-                    //         if (variant === 'donut')
-                    //             layerOne.animatedArc(placement.cx, placement.cy, currentRadius * ratio, 0, Math.PI * 2, instance.donutAnimationEnded ? 0 : 500, () => instance.donutAnimationEnded = true)
-                    //     }
-                    // }
-                startAngle = endAngle
-                newPoints.push(newPoint)
 
-            })
-            currentRadius = currentRadius - iteration > 0 ? currentRadius - iteration : iteration
+            }
+
+
         })
 
         if (points.length === 0)
@@ -135,17 +159,21 @@ export default function usePieChart({
     }
 
     useEffect(() => {
-        if (layerOne && width !== undefined && placement !== undefined) {
-            layerOne.defaultFont()
+        if (layerOne && width !== undefined && placement !== undefined && visualLayers.length === values.length) {
+            // layerOne.defaultFont()
             drawChart()
         }
 
-    }, [totals, layerOne, width, height, theme, placement])
+    }, [totals, visualLayers, width, height, theme, placement])
 
     useEffect(() => {
         setSlices([])
-        layerOne?.clearAll()
+        // layerOne?.clearAll()
     }, [values])
+
+    useEffect(() => {
+        console.log(points)
+    }, [points])
 }
 
 

@@ -5,6 +5,7 @@ import transition from "../prototypes/transition";
 import tooltip from "../prototypes/tooltip";
 import arcEraser from "../prototypes/arcEraser";
 import polygon from "../prototypes/polygon";
+import randomColor from "../utils/randomColor";
 
 
 export default function useLayeredCanvas( fontColor) {
@@ -29,6 +30,7 @@ export default function useLayeredCanvas( fontColor) {
         setLayers(prevState => {
             return [...prevState, element.getContext('2d')]
         })
+
     }
     const updateDimensions = (target) => {
         layers.forEach(l => {
@@ -54,15 +56,15 @@ export default function useLayeredCanvas( fontColor) {
             this.clearRect(0, 0, this.canvas.width, this.canvas.height)
         }
         CanvasRenderingContext2D.prototype.clearArc = function (cx, cy, radius, startAngle, endAngle) {
-            this.globalCompositeOperation = 'destination-out'
-
-            this.beginPath()
+            this.save();
+            this.globalCompositeOperation = 'destination-out';
+            this.beginPath();
             this.fillStyle = this.baseFontColor
-            this.arc(cx, cy, radius, startAngle, endAngle, false)
-            this.fill();
-            this.closePath()
+            this.moveTo(cx, cy)
+            this.arc(cx, cy, radius, startAngle, endAngle, false);
 
-            this.globalCompositeOperation = 'source-over'
+            this.fill();
+            this.restore();
         }
     }, [])
 

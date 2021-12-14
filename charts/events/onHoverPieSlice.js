@@ -71,6 +71,8 @@ export default function onHoverPieSlice({
         CanvasRenderingContext2D.prototype.lastOnHover = undefined
         ctx.clearAll()
         drawChart()
+
+
     }
 }
 
