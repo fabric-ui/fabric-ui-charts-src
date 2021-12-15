@@ -1,4 +1,4 @@
-import getAngle from "../utils/getAngle";
+import getAngle from "../utils/misc/getAngle";
 
 export default function onHoverPieSlice({
                                             event,

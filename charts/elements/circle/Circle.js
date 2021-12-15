@@ -1,7 +1,7 @@
 import Slice from "./Slice";
-import randomColor from "../utils/randomColor";
+import randomColor from "../../utils/color/randomColor";
 
-export default class Doughnut{
+export default class Circle {
     slices = []
     linkedTo = []
     constructor(onSliceCreation, radius, toRemoveRadius, valueIndex, valueObj,totals, data, cx, cy, ctx) {

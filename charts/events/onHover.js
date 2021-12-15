@@ -15,7 +15,6 @@ export default function onHover({
                 variant: 'rect'
             }
             drawn = true
-            // if (i === ctx.lastOnHover)
             ctx.tooltip(
                 p,
                 'rgba(0,0,0,.75)',
@@ -23,37 +22,17 @@ export default function onHover({
                 placement,
                 () => {
                     ctx.clearAll()
-                    drawChart({value: p.value, axis: p.axis})
+                    drawChart(p, true)
                 }
             )
-            // else
-            //     ctx.opacityTransition(
-            //         false,
-            //         '#000',
-            //         250,
-            //         (color) => {
-            //             ctx.tooltip(
-            //                 p,
-            //                 color,
-            //                 event,
-            //                 placement,
-            //                 () => {
-            //                     ctx.clearAll()
-            //                     drawChart(i)
-            //                 }
-            //             )
-            //         }, .75)
-
-            CanvasRenderingContext2D.prototype.lastOnHover = i
         } else if (drawn === undefined)
             drawn = false
     })
 
 
     if (drawn === false) {
-        CanvasRenderingContext2D.prototype.lastOnHover = undefined
         ctx.clearAll()
-        drawChart()
+        drawChart(undefined, true)
     }
 }
 

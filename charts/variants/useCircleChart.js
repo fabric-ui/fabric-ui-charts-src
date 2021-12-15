@@ -3,12 +3,12 @@ import useAsyncMemo from "../hooks/useAsyncMemo";
 import onHoverPieSlice from "../events/onHoverPieSlice";
 import PropTypes from "prop-types";
 import useHover from "../hooks/useHover";
-import Slice from "../elements/Slice";
-import randomColor from "../utils/randomColor";
-import Doughnut from "../elements/Doughnut";
+import Slice from "../elements/circle/Slice";
+import randomColor from "../utils/color/randomColor";
+import Circle from "../elements/circle/Circle";
 
 
-export default function usePieChart({
+export default function useCircleChart({
                                         donutRatio,
                                         variant,
                                         totals,
@@ -22,7 +22,7 @@ export default function usePieChart({
                                         height
                                     }) {
 
-    const [slices, setSlices] = useState([])
+    const [elements, setElements] = useState([])
     const visibleValues = useMemo(() => {
         return values.filter(b => !b.hidden)
     }, [values])
@@ -45,7 +45,7 @@ export default function usePieChart({
             variant: variant,
             ratioRadius: (variant === 'donut' ? (placement.radius * ratio / (visibleValues.length)) : placement.radius)
         })
-    }, [slices])
+    }, [elements])
 
     const placement = useAsyncMemo(() => {
         if (width !== undefined && height !== undefined) {
@@ -70,7 +70,7 @@ export default function usePieChart({
         if (!isMouseEvent) {
             layerOne.clearAll()
             visibleValues.forEach((valueObj, vi) => {
-                const dNut = new Doughnut(slice => {
+                const circle = new Circle(slice => {
                         const r = ((currentRadius) / 2)
                         let tooltipX = Math.cos((slice.startAngle + slice.endAngle) / 2) * r * 1.5,
                             tooltipY = Math.sin((slice.startAngle + slice.endAngle) / 2) * r * 1.5
@@ -100,23 +100,23 @@ export default function usePieChart({
                     layerOne,
                 )
 
-                newInstances.push(dNut)
+                newInstances.push(circle)
                 if (vi > 0)
-                    newInstances[vi - 1].linkedTo.push(dNut)
+                    newInstances[vi - 1].linkedTo.push(circle)
 
-                dNut.draw()
+                circle.draw()
                 currentRadius = currentRadius - iteration > 0 ? currentRadius - iteration : iteration
             })
             if (points.length === 0)
                 setPoints(newPoints)
-            if (slices.length === 0)
-                setSlices(newInstances)
+            if (elements.length === 0)
+                setElements(newInstances)
         } else {
-            slices.forEach(slice => {
-                if (onHover && slice.valueIndex === onHover.valueIndex)
-                    slice.handleSliceHover(onHover.dataIndex)
+            elements.forEach(circle => {
+                if (onHover && circle.valueIndex === onHover.valueIndex)
+                    circle.handleSliceHover(onHover.dataIndex)
                 else
-                    slice.handleHoverExit()
+                    circle.handleHoverExit()
             })
         }
 
@@ -125,17 +125,17 @@ export default function usePieChart({
     useEffect(() => {
         if (layerOne && width !== undefined && placement !== undefined && totals.length > 0)
             drawChart()
-    }, [totals, width, height, placement, slices])
+    }, [totals, width, height, placement, elements])
 
     useEffect(() => {
-        setSlices([])
+        setElements([])
     }, [values])
 
 
 }
 
 
-usePieChart.propTypes = {
+useCircleChart.propTypes = {
     data: PropTypes.arrayOf(PropTypes.object),
     variant: PropTypes.string,
     axis: PropTypes.object,

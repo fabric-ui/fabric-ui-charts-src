@@ -1,5 +1,5 @@
-import hexToRgba from "../utils/hexToRgba";
-import ease from "../utils/animations/ease";
+import hexToRgba from "../../utils/color/hexToRgba";
+import ease from "../../utils/animations/ease";
 
 export default class Radar {
     animated = false

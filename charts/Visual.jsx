@@ -3,12 +3,11 @@ import React, {useContext, useEffect, useMemo, useState} from "react";
 import DashboardContext from "./DataContext";
 import shared from "./styles/Charts.module.css";
 import useLineChart from "./variants/useLineChart";
-import useVerticalChart from "./variants/useVerticalChart";
-import useHorizontalChart from "./variants/useHorizontalChart";
-import usePieChart from "./variants/usePieChart";
+import useBarChart from "./variants/useBarChart";
+import useCircleChart from "./variants/useCircleChart";
 import useRadarChart from "./variants/useRadarChart";
 import useData from "./hooks/useData";
-import randomColor from "./utils/randomColor";
+import randomColor from "./utils/color/randomColor";
 import useChart from "./hooks/useChart";
 import Button from "../../core/inputs/button/Button";
 
@@ -16,13 +15,12 @@ function getHook(variant, params) {
     switch (variant) {
         case 'line':
             return useLineChart(params)
-        case  'vertical-bar':
-            return useVerticalChart(params)
         case  'horizontal-bar':
-            return useHorizontalChart(params)
+        case  'vertical-bar':
+            return useBarChart(params)
         case 'donut':
         case  'pie':
-            return usePieChart(params)
+            return useCircleChart(params)
         case 'radar':
             return useRadarChart(params)
         default:

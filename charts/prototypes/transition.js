@@ -1,4 +1,4 @@
-import hexToRgba from "../utils/hexToRgba";
+import hexToRgba from "../utils/color/hexToRgba";
 import ease from "../utils/animations/ease";
 
 export default function transition(color, timestamp, drawContent, initialOpacity=0, finalOpacity=1, onAnimationEnd){

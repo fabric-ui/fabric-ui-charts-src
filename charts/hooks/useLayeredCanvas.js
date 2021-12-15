@@ -5,7 +5,7 @@ import transition from "../prototypes/transition";
 import tooltip from "../prototypes/tooltip";
 import arcEraser from "../prototypes/arcEraser";
 import polygon from "../prototypes/polygon";
-import randomColor from "../utils/randomColor";
+import randomColor from "../utils/color/randomColor";
 import ThemeContext from "../../../core/misc/context/ThemeContext";
 
 
@@ -58,15 +58,18 @@ export default function useLayeredCanvas( fontColor) {
             this.clearRect(0, 0, this.canvas.width, this.canvas.height)
         }
         CanvasRenderingContext2D.prototype.clearArc = function (cx, cy, radius, startAngle, endAngle) {
-            this.save();
-            this.globalCompositeOperation = 'destination-out';
-            this.beginPath();
-            this.fillStyle = this.getThemes().fabric_background_primary
-            this.moveTo(cx, cy)
-            this.arc(cx, cy, radius, startAngle, endAngle, false);
 
-            this.fill();
-            this.restore();
+            if(radius > 0) {
+                this.save();
+                this.globalCompositeOperation = 'destination-out';
+                this.beginPath();
+                this.fillStyle = this.getThemes().fabric_background_primary
+                this.moveTo(cx, cy)
+                this.arc(cx, cy, radius, startAngle, endAngle, false);
+
+                this.fill();
+                this.restore();
+            }
         }
     }, [])
 

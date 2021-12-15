@@ -1,5 +1,5 @@
-import ease from "../utils/animations/ease";
-import hexToRgba from "../utils/hexToRgba";
+import ease from "../../utils/animations/ease";
+import hexToRgba from "../../utils/color/hexToRgba";
 
 export default class Slice {
     animated = false
@@ -23,18 +23,10 @@ export default class Slice {
 
     hover() {
         this.endedHover = false
-
-        // this.ctx.opacityTransition(this.color, 500, (c) => {
-            this.draw(this.color, this.radius,  this.ctx.getThemes().fabric_border_secondary)
-        // }, .75, 1)
+        this._paint(this.color, this.radius, this.ctx.getThemes().fabric_border_secondary)
     }
 
-    hoverEnd() {
-        this.draw(hexToRgba(this.color, 0.75), this.radius)
-        this.endedHover = true
-    }
-
-    draw(color, radius, strokeStyle=this.strokeStyle) {
+    _paint(color, radius, strokeStyle = this.strokeStyle) {
         this.ctx.clearArc(this.cx, this.cy, this.radius * 1.01, this.startAngle, this.endAngle)
 
         this.ctx.fillStyle = color
@@ -51,20 +43,18 @@ export default class Slice {
         this.ctx.fill()
         this.ctx.stroke()
         this.ctx.closePath()
-
-
     }
 
-    init(ts) {
+    init() {
         this.endedHover = true
         this.animated = true
 
         let start, previousTimeStamp,
-            targetTimestamp = ts === 0 ? 0 : 500 + this.index * 50,
+            targetTimestamp = 0,
             currentRadius = 0
 
         const d = (elapsed) => {
-            this.draw(hexToRgba(this.color, 0.75), currentRadius)
+            this._paint(hexToRgba(this.color, 0.75), currentRadius)
             currentRadius = ease(elapsed, 0, this.radius, targetTimestamp, 5)
         }
         const step = (t) => {

@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo} from "react";
 import onHover from "../events/onHover";
-import drawGrid from "../utils/drawGrid";
+import drawGrid from "../utils/misc/drawGrid";
 import useHover from "../hooks/useHover";
 
 
@@ -28,10 +28,10 @@ export default function useLineChart({
         return values.filter(v => !v.hidden)
     }, [values])
 
-    const drawLine = ({point, position, onHover, valueKey, valueColor, valueLabel, newPoints = []}) => {
+    const drawLine = ({point, dataIndex, valueIndex, onHover, valueKey, valueColor, valueLabel, newPoints = []}) => {
         const pVariation = (point[valueKey] * 100) / biggest
         const height = ((pVariation * (layerOne.canvas.height - labelSpacing * 1.35)) / 100)
-        let x = (position * (layerOne.canvas.width - labelSpacing * 1.75 - 4) / (data.length - 1)) + labelSpacing * 1.35,
+        let x = (dataIndex * (layerOne.canvas.width - labelSpacing * 1.75 - 4) / (data.length - 1)) + labelSpacing * 1.35,
             y = layerOne.canvas.height - labelSpacing - height
 
 
@@ -44,7 +44,9 @@ export default function useLineChart({
             valueLabel: valueLabel,
             color: valueColor,
             width: 20,
-            height: 20
+            height: 20,
+            valueIndex: valueIndex,
+            dataIndex: dataIndex
         })
 
         layerOne.strokeStyle = valueColor
@@ -55,7 +57,7 @@ export default function useLineChart({
         layerOne.fill();
         layerOne.stroke();
 
-        if (position > 0) {
+        if (dataIndex > 0) {
             layerOne.setLineDash([3, 3]);
             layerOne.beginPath();
             layerOne.moveTo(xBefore, yBefore);
@@ -69,15 +71,16 @@ export default function useLineChart({
         yBefore = y
     }
 
-    const drawChart = (onHover) => {
+    const drawChart = (onHover, isMouseEvent) => {
         layerOne.clearAll()
         let newPoints = []
         visibleValues.map((valueObj, vi) => {
             data.forEach((point, index) => {
                 drawLine({
                     point: point,
-                    position: index,
-                    onHover: onHover?.axis === point[axis.field] && onHover.value === point[valueObj.field],
+                    dataIndex: index,
+                    valueIndex: vi,
+                    onHover: onHover && onHover.valueIndex === vi && onHover.dataIndex === index,
                     valueKey: valueObj.field,
                     valueColor: valueObj.hexColor,
                     valueLabel: valueObj.label,

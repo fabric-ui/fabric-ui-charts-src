@@ -1,9 +1,9 @@
 import React, {useEffect, useMemo, useState} from "react";
 import useAsyncMemo from "../hooks/useAsyncMemo";
-import hexToRgba from "../utils/hexToRgba";
+import hexToRgba from "../utils/color/hexToRgba";
 import onHover from "../events/onHover";
-import Polygon from "../elements/Radar";
-import Radar from "../elements/Radar";
+import Polygon from "../elements/radar/Radar";
+import Radar from "../elements/radar/Radar";
 import PropTypes from "prop-types";
 import useHover from "../hooks/useHover";
 import onHoverPieSlice from "../events/onHoverPieSlice";
