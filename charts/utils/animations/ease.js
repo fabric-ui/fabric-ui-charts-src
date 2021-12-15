@@ -1,4 +1,4 @@
-export default function getEase(currentProgress, start, distance, steps, power) {
+export default function ease(currentProgress, start, distance, steps, power) {
     currentProgress /= steps / 2;
     if (currentProgress < 1) {
         return (distance / 2) * (Math.pow(currentProgress, power)) + start;

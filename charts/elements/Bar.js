@@ -1,5 +1,5 @@
 import hexToRgba from "../utils/hexToRgba";
-import getEase from "../utils/getEase";
+import ease from "../utils/animations/ease";
 
 export default class Bar {
     animated = false
@@ -40,8 +40,8 @@ export default class Bar {
                 ctx.stroke()
 
 
-                currentWidth = this.initialWidth === this.width || elapsed === 0 ? this.width : getEase(elapsed, 0, this.width, targetTimestamp, 5)
-                currentHeight = this.initialHeight === this.height ? this.height : getEase(elapsed, 0,this.height, targetTimestamp, 5)
+                currentWidth = this.initialWidth === this.width || elapsed === 0 ? this.width : ease(elapsed, 0, this.width, targetTimestamp, 5)
+                currentHeight = this.initialHeight === this.height ? this.height : ease(elapsed, 0,this.height, targetTimestamp, 5)
 
                 currentY = this.height - currentHeight + this.y
             }

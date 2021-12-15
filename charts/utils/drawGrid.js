@@ -10,8 +10,7 @@ export default function drawGrid({
                                      width,
                                      offset,
                                      variant,
-                                     height,
-    valuesLength
+                                     height
                                  }) {
 
     layer.strokeStyle = strokeStyle

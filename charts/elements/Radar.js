@@ -1,5 +1,5 @@
 import hexToRgba from "../utils/hexToRgba";
-import getEase from "../utils/getEase";
+import ease from "../utils/animations/ease";
 
 export default class Radar {
     animated = false
@@ -124,7 +124,7 @@ export default class Radar {
                     this.points = allPoints
                     setPoints(allPoints)
                 }
-                currentRadius = getEase(elapsed, 0, this.radius, timestamp, 5)
+                currentRadius = ease(elapsed, 0, this.radius, timestamp, 5)
             }
 
             const step = (t) => {

@@ -1,4 +1,4 @@
-import getEase from "../utils/getEase";
+import ease from "../utils/animations/ease";
 import hexToRgba from "../utils/hexToRgba";
 
 export default class Slice {
@@ -24,7 +24,9 @@ export default class Slice {
     hover() {
         this.endedHover = false
 
-        this.draw(this.color, this.radius,  this.ctx.getThemes().fabric_border_secondary)
+        // this.ctx.opacityTransition(this.color, 500, (c) => {
+            this.draw(this.color, this.radius,  this.ctx.getThemes().fabric_border_secondary)
+        // }, .75, 1)
     }
 
     hoverEnd() {
@@ -63,7 +65,7 @@ export default class Slice {
 
         const d = (elapsed) => {
             this.draw(hexToRgba(this.color, 0.75), currentRadius)
-            currentRadius = getEase(elapsed, 0, this.radius, targetTimestamp, 5)
+            currentRadius = ease(elapsed, 0, this.radius, targetTimestamp, 5)
         }
         const step = (t) => {
             if (start === undefined)

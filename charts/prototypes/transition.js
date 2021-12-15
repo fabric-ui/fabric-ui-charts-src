@@ -1,8 +1,8 @@
 import hexToRgba from "../utils/hexToRgba";
-import getEase from "../utils/getEase";
+import ease from "../utils/animations/ease";
 
-export default function transition(backwards, color, timestamp, drawContent, finalOpacity=1, onAnimationEnd){
-    let start, previousTimeStamp, currentOpacity = backwards ? 1 : 0
+export default function transition(color, timestamp, drawContent, initialOpacity=0, finalOpacity=1, onAnimationEnd){
+    let start, previousTimeStamp, currentOpacity = initialOpacity
 
     const step = (t) => {
         if (start === undefined)
@@ -11,9 +11,8 @@ export default function transition(backwards, color, timestamp, drawContent, fin
         const rgbaColor = hexToRgba(color, currentOpacity)
 
         if (previousTimeStamp !== t) {
-
             drawContent(rgbaColor)
-            currentOpacity = getEase(elapsed, backwards ? 1 : 0, -finalOpacity, timestamp, 5)
+            currentOpacity = ease(elapsed, finalOpacity + initialOpacity/2, -initialOpacity, timestamp, 5)
         }
         if (timestamp > elapsed ) {
             previousTimeStamp = t

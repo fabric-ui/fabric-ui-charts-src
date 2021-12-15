@@ -1,10 +1,10 @@
-import getEase from "../utils/getEase";
+import ease from "../utils/animations/ease";
 
 export default function arcEraser(cx, cy, radius, startAngle, endAngle, timestamp, onEnded) {
     let start, previousTimeStamp
 
     const draw = (elapsed) => {
-        this.clearArc(cx, cy,elapsed === timestamp ? radius :  getEase(elapsed, 0, radius, timestamp, 5), startAngle, endAngle)
+        this.clearArc(cx, cy,elapsed === timestamp ? radius :  ease(elapsed, 0, radius, timestamp, 5), startAngle, endAngle)
 
     }
     const step = (t) => {

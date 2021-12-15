@@ -6,7 +6,9 @@ export default function useData(datasets, axis) {
         let validDatasets = []
         let data,  response = []
         datasets.forEach(d => {
+
             const filtered = d.filter(obj => obj[axis] !== undefined && obj[axis] !== null)
+            console.log(d)
             if (filtered.length > 0)
                 validDatasets.push(filtered)
         })
@@ -17,7 +19,7 @@ export default function useData(datasets, axis) {
             r[v[axis]].push(v);
             return r;
         }, [])
-
+        console.log(validDatasets)
         Object.keys(n).forEach(key => {
             let newObj = {}
             const values = n[key]
@@ -34,4 +36,6 @@ export default function useData(datasets, axis) {
         })
         return response
     }, [datasets])
+
+
 }

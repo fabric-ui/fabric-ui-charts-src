@@ -104,7 +104,7 @@ export default function usePieChart({
                 if (vi > 0)
                     newInstances[vi - 1].linkedTo.push(dNut)
 
-                dNut.draw(true)
+                dNut.draw()
                 currentRadius = currentRadius - iteration > 0 ? currentRadius - iteration : iteration
             })
             if (points.length === 0)
@@ -123,14 +123,13 @@ export default function usePieChart({
     }
 
     useEffect(() => {
-        if (layerOne && width !== undefined && placement !== undefined)
+        if (layerOne && width !== undefined && placement !== undefined && totals.length > 0)
             drawChart()
-    }, [width, height, placement, slices])
+    }, [totals, width, height, placement, slices])
 
     useEffect(() => {
-
         setSlices([])
-    }, [values, totals,])
+    }, [values])
 
 
 }
