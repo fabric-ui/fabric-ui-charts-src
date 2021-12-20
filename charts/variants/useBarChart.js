@@ -6,7 +6,6 @@ import PropTypes from "prop-types";
 import drawGrid from "../utils/misc/drawGrid";
 import Bar from "../elements/bar/Bar";
 import useHover from "../hooks/useHover";
-import Circle from "../elements/circle/Circle";
 
 
 export default function useBarChart(

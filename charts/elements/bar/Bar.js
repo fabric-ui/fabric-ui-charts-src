@@ -1,6 +1,3 @@
-import hexToRgba from "../../utils/color/hexToRgba";
-import ease from "../../utils/animations/ease";
-import Slice from "../circle/Slice";
 import Row from "./Row";
 
 export default class Bar {

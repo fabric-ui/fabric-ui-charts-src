@@ -1,5 +1,4 @@
 import {useEffect} from "react";
-import onHoverPieSlice from "../events/onHoverPieSlice";
 
 export default function useHover(context, points,onHover, deps=[]){
     const handleMouseMove = (event) => {

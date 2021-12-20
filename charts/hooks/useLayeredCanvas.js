@@ -5,7 +5,6 @@ import transition from "../prototypes/transition";
 import tooltip from "../prototypes/tooltip";
 import arcEraser from "../prototypes/arcEraser";
 import polygon from "../prototypes/polygon";
-import randomColor from "../utils/color/randomColor";
 import ThemeContext from "../../../core/misc/context/ThemeContext";
 
 

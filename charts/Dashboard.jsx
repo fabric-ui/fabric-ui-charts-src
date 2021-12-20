@@ -1,9 +1,7 @@
 import PropTypes from "prop-types";
-import React, {useEffect, useMemo, useState} from 'react'
+import React from 'react'
 import DashboardContext from "./DataContext";
-import Visual from "./Visual";
 import styles from './styles/Charts.module.css'
-import Button from "../../core/inputs/button/Button";
 
 export default function Dashboard(props) {
 

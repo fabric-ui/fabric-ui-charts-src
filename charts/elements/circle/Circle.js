@@ -1,5 +1,4 @@
 import Slice from "./Slice";
-import randomColor from "../../utils/color/randomColor";
 
 export default class Circle {
     slices = []

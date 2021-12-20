@@ -3,7 +3,6 @@ import useAsyncMemo from "../hooks/useAsyncMemo";
 import onHoverPieSlice from "../events/onHoverPieSlice";
 import PropTypes from "prop-types";
 import useHover from "../hooks/useHover";
-import Slice from "../elements/circle/Slice";
 import randomColor from "../utils/color/randomColor";
 import Circle from "../elements/circle/Circle";
 

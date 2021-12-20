@@ -1,6 +1,5 @@
-import React, {useContext, useEffect, useMemo, useRef, useState} from "react";
+import React, {useEffect, useMemo, useRef, useState} from "react";
 import useDimensions from "./useDimensions";
-import ThemeContext from "../../../core/misc/context/ThemeContext";
 import useLayeredCanvas from "./useLayeredCanvas";
 
 const padding = 32
