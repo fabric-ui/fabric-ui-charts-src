@@ -1,3 +1,5 @@
+import React from 'react'
+
 export default function ease(currentProgress, start, distance, steps, power) {
     currentProgress /= steps / 2;
     if (currentProgress < 1) {

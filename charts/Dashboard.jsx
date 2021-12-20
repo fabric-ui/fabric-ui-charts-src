@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import React from 'react'
-import DashboardContext from "./DataContext";
+import DashboardContext from "./hooks/DataContext";
 import styles from './styles/Charts.module.css'
 
 export default function Dashboard(props) {

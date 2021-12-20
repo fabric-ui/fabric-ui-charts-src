@@ -1,3 +1,4 @@
+import React from 'react'
 import getAngle from "../utils/misc/getAngle";
 
 export default function onHoverPieSlice({

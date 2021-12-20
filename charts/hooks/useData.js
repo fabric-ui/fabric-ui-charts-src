@@ -1,3 +1,5 @@
+import React from 'react'
+
 import {useMemo} from "react";
 
 export default function useData(datasets, axis) {

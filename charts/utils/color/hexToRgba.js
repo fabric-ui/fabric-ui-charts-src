@@ -1,3 +1,6 @@
+import React from 'react'
+
+
 export default function hexToRgba(hex, newOpacity){
     let c;
     if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){

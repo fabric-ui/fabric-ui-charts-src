@@ -1,3 +1,4 @@
+import React from 'react'
 import {useMemo} from "react";
 
 export default function useSample(axisKey, valuesLength, datasetQuantity, dataLength) {

@@ -1,3 +1,4 @@
+import React from 'react'
 import {useContext, useEffect, useState} from "react";
 import roundRect from "../prototypes/roundRect";
 
@@ -5,7 +6,8 @@ import transition from "../prototypes/transition";
 import tooltip from "../prototypes/tooltip";
 import arcEraser from "../prototypes/arcEraser";
 import polygon from "../prototypes/polygon";
-import ThemeContext from "../../../core/misc/context/ThemeContext";
+import {ThemeContext} from "@f-ui/core";
+// import ThemeContext from "../../../core/misc/context/ThemeContext";
 
 
 export default function useLayeredCanvas( fontColor) {

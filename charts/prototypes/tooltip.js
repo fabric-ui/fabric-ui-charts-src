@@ -1,3 +1,5 @@
+import React from 'react'
+
 function drawTriangle(x, y, width, height, placement, context) {
 
     switch (placement) {

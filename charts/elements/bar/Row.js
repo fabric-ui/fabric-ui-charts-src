@@ -1,3 +1,4 @@
+import React from 'react'
 import hexToRgba from "../../utils/color/hexToRgba";
 import ease from "../../utils/animations/ease";
 

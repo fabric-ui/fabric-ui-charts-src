@@ -1,5 +1,6 @@
-import Visual from "../charts/Visual";
-import Dashboard from "../charts/Dashboard";
+import React from 'react'
+import Visual from "../charts/Visual.jsx";
+import Dashboard from "../charts/Dashboard.jsx";
 import useSample from "./useSample";
 
 

@@ -1,3 +1,5 @@
+
+import React from 'react'
 export default function polygon(strokeStyle, sides, cx, cy, radius, drawLines) {
     let placements = []
 

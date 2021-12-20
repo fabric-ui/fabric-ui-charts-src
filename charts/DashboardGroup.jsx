@@ -1,9 +1,9 @@
 import PropTypes from "prop-types";
 import React from 'react'
-import DashboardContext from "./DataContext";
+import DashboardContext from "./hooks/DataContext";
 import styles from './styles/Charts.module.css'
 
-export default function Dashboard(props) {
+export default function DashboardGroup(props) {
 
 
     return (
@@ -15,7 +15,7 @@ export default function Dashboard(props) {
     )
 }
 
-Dashboard.propTypes = {
+DashboardGroup.propTypes = {
     children: PropTypes.node,
     datasets: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.object)).isRequired,
     styles: PropTypes.object,

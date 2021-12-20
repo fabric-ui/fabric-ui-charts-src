@@ -1,3 +1,4 @@
+import React from 'react'
 export default function hexToHsl(hex) {
     let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
 

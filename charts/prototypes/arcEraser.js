@@ -1,3 +1,4 @@
+import React from 'react'
 import ease from "../utils/animations/ease";
 
 export default function arcEraser(cx, cy, radius, startAngle, endAngle, timestamp, onEnded) {
